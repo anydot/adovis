@@ -1,0 +1,2 @@
+let credentials = "ALIAS:PAT token";
+let epicId = 123456789;
