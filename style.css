@@ -1,0 +1,91 @@
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+}
+
+#chart {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+.chart-row {
+    padding: 5px 5px 5px 5px;
+    cursor: default;
+}
+
+.chart-row-highlighted {
+    background-color: gainsboro;
+    border-radius: 5px;
+}
+
+.chart-row-predecessor-highlighted {
+    background-color: antiquewhite;
+    border-radius: 5px;
+}
+
+.chart-row-successor-highlighted {
+    background-color: paleturquoise;
+    border-radius: 5px;
+}
+
+.columnPending {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(255, 200, 200);
+    cursor: default;
+}
+
+.columnClarify {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(255, 220, 200);
+    cursor: default;
+}
+
+.columnReady {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(240, 240, 140);
+    cursor: default;
+}
+
+.columnInProgress {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(160, 220, 255);
+    cursor: default;
+}
+
+.columnClosed {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(140, 240, 140);
+    cursor: default;
+}
+
+.predecessors {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(140, 140, 140);
+    color: white;
+    cursor: default;
+}
+
+.successors {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(200, 200, 200);
+    color: white;
+    cursor: default;
+}
+
+.assignedTo {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background: rgb(160, 220, 255);
+    color: white;
+    cursor: default;
+}
+
+.title {
+    cursor: text;
+}
