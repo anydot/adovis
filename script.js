@@ -187,7 +187,7 @@ $(document).ready(async function() {
                 var workItemHref = (
                     '<a ' +
                         'href="' + graphItem.workItem.url + '"' +
-                    '>' +
+                    ' target="_blank">' +
                         id +
                     '</a> '
                 )
