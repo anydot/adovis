@@ -5,6 +5,10 @@ $(document).ready(async function() {
         }
     }
 
+    let storage = window.localStorage
+    let epicId = storage.getItem("epicId")
+    let credentials = storage.getItem("credentials")
+
     function requestVso(resource, query) {
         return $.ajax({
             type: 'GET',
@@ -17,7 +21,6 @@ $(document).ready(async function() {
     }
 
     class WorkItem {
-
         static async getById(id) {
             var response = await requestVso('wit/workitems', { 'id': id, '$expand': 'all'})
             console.log('get by ID response', response)
@@ -35,7 +38,6 @@ $(document).ready(async function() {
         }
 
         static fromVsoResponse(response) {
-
             var item = new WorkItem()
 
             item.id = response.id.toString()
@@ -72,38 +74,42 @@ $(document).ready(async function() {
         }
     }
 
-    var item = await WorkItem.getById(epicId)
+    async function renderEpic(epicId) {
+        $("#chart").empty();
 
-    console.log('work item', item)
+        var item = await WorkItem.getById(epicId)
 
-    var children = await item.getChildren()
+        console.log('work item', item)
 
-    console.log('children', children)
+        var children = await item.getChildren()
 
-    var roots = {}
+        console.log('children', children)
 
-    children.forEach(function(item) {
-        roots[item.id] = item
-    })
+        var roots = {}
 
-    var graph = {}
+        children.forEach(function(item) {
+            roots[item.id] = item
+        })
 
-    children.forEach(function(item) {
-        graph[item.id] = {
-            workItem: item,
-            longestOffset: 0,
-            longestPredecessor: null
-        }
-        item.successorIds
-            .forEach(function(id) {
-                delete roots[id]
-            })
-    })
+        var graph = {}
 
-    console.log('roots', roots)
-    console.log('graph', graph)
+        children.forEach(function(item) {
+            graph[item.id] = {
+                workItem: item,
+                longestOffset: 0,
+                longestPredecessor: null
+            }
+            item.successorIds
+                .forEach(function(id) {
+                    delete roots[id]
+                })
+        })
 
-    renderDependencyGraph($('#chart'), roots, graph)
+        console.log('roots', roots)
+        console.log('graph', graph)
+
+        renderDependencyGraph($('#chart'), roots, graph)
+    }
 
     function renderDependencyGraph($chart, roots, graph) {
 
@@ -277,5 +283,46 @@ $(document).ready(async function() {
 
                 toggleHighlightDependencies($this)
             })
+    }
+
+    if (epicId && credentials) {
+        $("#epicId").val(epicId)
+        await renderEpic(epicId)
+    }
+
+    async function login() {
+        $(".logout").show()
+        $(".login").hide()
+  
+        credentials = "adovis:" + $("#pat").val()
+        $("#pat").val("")
+        storage.setItem("credentials", credentials)
+        if (epicId) {
+            await renderEpic(epicId)
+        }
+    }
+
+    function logout() {
+        $(".logout").hide()
+        $(".login").show()
+
+        credentials = null
+        storage.removeItem("credentials", null)
+    }
+
+    $("#go").click(async function() {
+        epicId= $("#epicId").val()
+        storage.setItem("epicId", epicId)
+        await renderEpic(epicId)
+    })
+
+    $('#login').click(login)
+    $("#logout").click(logout)
+
+    if (credentials) {
+        $(".logout").show()
+    }
+    else {
+        $(".login").show()
     }
 })
