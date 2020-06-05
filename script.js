@@ -285,11 +285,6 @@ $(document).ready(async function() {
             })
     }
 
-    if (epicId && credentials) {
-        $("#epicId").val(epicId)
-        await renderEpic(epicId)
-    }
-
     async function login() {
         $(".logout").show()
         $(".login").hide()
@@ -307,7 +302,7 @@ $(document).ready(async function() {
         $(".login").show()
 
         credentials = null
-        storage.removeItem("credentials", null)
+        storage.removeItem("credentials")
     }
 
     $("#go").click(async function() {
@@ -324,5 +319,10 @@ $(document).ready(async function() {
     }
     else {
         $(".login").show()
+    }
+  
+    if (epicId && credentials) {
+        $("#epicId").val(epicId)
+        await renderEpic(epicId)
     }
 })
