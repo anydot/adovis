@@ -1,7 +1,9 @@
 <!doctype html>
+
 <html lang="en">
 
 <head>
+
     <link rel="stylesheet" href="style.css">
     <meta charset="utf-8">
     <title>Adovis</title>
@@ -12,12 +14,65 @@
         crossorigin="anonymous"></script>
 
     <script src="script.js"></script>
+
 </head>
+
 <body>
-    <div id="chart"></div>
-    <input id="epicId" /><button id="go">Go!</button>
-    <br />
-    <div class="login"><input id="pat"><button id="login">Login</button></div>
-    <div class="logout"><button id="logout">Logout</button></div>
+
+    <div id="view-main">
+
+        <p id="chart"></p>
+
+        <p>
+            <input id="input-epicId" />
+            <button id="button-visualize">Visualize epic</button>
+        </p>
+
+        <p>Visualization requires the following:</p>
+
+        <ol>
+            <li>The epic exists.</li>
+            <li>You have access to the epic.</li>
+            <li>All tasks that need to be visualized within the epic are set as immediate children of the epic.</li>
+            <li>Dependencies between tasks are defined using successor-predecessor relationship.</li>
+        </ol>
+
+        <p>
+            <button id="button-logout">Log out</button>
+        </p>
+
+    </div>
+
+    <div id="view-login">
+
+        <h1>ADO RM epic visualizer</h1>
+
+        <p>ADO RM epic visualizer allows to visualize dependencies between child tasks in epic. To start, please log in:</p>
+
+        <ol>
+            <li>Go to <a href="https://dev.azure.com/skype/_usersSettings/tokens" target="_blank">ADO RM / Personal Access Tokens</a>.</li>
+            <li>Create a new PAT token with the following parameters:</li>
+            <ul>
+                <li><b>Name:</b> ADO RM epic visualizer</li>
+                <li><b>Organization:</b> skype</li>
+                <li><b>Expiration:</b> decide for yourself</li>
+                <li><b>Scopes:</b> custom defined, Work Items (Read)</li>
+            </ul>
+            <li>Copy the token to the input field below. Note:</li>
+            <ul>
+                <li>You might also want to save the token in some secure place in case you need to login again (e. g. on another machine) while it's still active.</li>
+                <li>This page will store the token in the local storage of your browser and it will also send the token with requests to ADO RM to retrieve the data about the tasks. The page will not use the token in any other ways.</li>
+            </ul>
+            <li>Click the <b>Log in</b> button.</li>
+        </ol>
+
+        <p>
+            <input id="input-pat" />
+            <button id="button-login">Log in</button>
+        </p>
+
+    </div>
+
 </body>
+
 </html>

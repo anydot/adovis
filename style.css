@@ -3,12 +3,16 @@
 }
 
 #chart {
-    border: 1px solid black;
-    padding: 5px;
+    border: 0px solid black;
+    display: none;
+}
+
+.epic {
+    font-size: large;
 }
 
 .chart-row {
-    padding: 5px 5px 5px 5px;
+    padding: 5px;
     cursor: default;
 }
 
@@ -90,6 +94,6 @@
     cursor: text;
 }
 
-.login, .logout {
+#view-main, #view-login {
     display: none;
 }

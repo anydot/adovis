@@ -1,13 +1,25 @@
 $(document).ready(async function() {
+
     if (!Array.prototype.last) {
         Array.prototype.last = function() {
             return this[this.length - 1]
         }
     }
 
+    $(window).bind('hashchange', function(e) {
+        location.reload()
+    });
+
     let storage = window.localStorage
-    let epicId = storage.getItem("epicId")
+
     let credentials = storage.getItem("credentials")
+
+    let epicId = window.location.hash.trim()
+    if (epicId.startsWith('#')) {
+        epicId = epicId.substr(1)
+    }
+
+    console.log("epic ID is [", epicId, "]")
 
     function requestVso(resource, query) {
         return $.ajax({
@@ -41,6 +53,7 @@ $(document).ready(async function() {
             var item = new WorkItem()
 
             item.id = response.id.toString()
+            item.wiType = response.fields['System.WorkItemType']
             item.title = response.fields['System.Title'].replace(/\[DOR\]/g, '')
             item.url = response._links.html.href.replace(/skype\.visualstudio\.com/, 'dev.azure.com/skype')
             item.state = response.fields['System.State']
@@ -75,11 +88,16 @@ $(document).ready(async function() {
     }
 
     async function renderEpic(epicId) {
-        $("#chart").empty();
+
+        var chart = $("#chart")
+
+        chart.empty();
 
         var item = await WorkItem.getById(epicId)
 
         console.log('work item', item)
+
+        chart.append('<h1 class="epic"><a href=' + item.url + ' target="_blank">' + item.wiType + ' ' + item.id + '</a> ' + item.title + '</h1>')
 
         var children = await item.getChildren()
 
@@ -108,7 +126,11 @@ $(document).ready(async function() {
         console.log('roots', roots)
         console.log('graph', graph)
 
-        renderDependencyGraph($('#chart'), roots, graph)
+        renderDependencyGraph(chart, roots, graph)
+
+        if (graph) {
+            chart.show(epicId)
+        }
     }
 
     function renderDependencyGraph($chart, roots, graph) {
@@ -174,13 +196,13 @@ $(document).ready(async function() {
 
                 var predecessorsTag = (
                     hasOtherPredecessors
-                        ? '<span class="predecessors" title="Highlight predecessors">' + numOtherPredecessors + '</span> '
+                        ? '<span class="predecessors" title="Predecessors, click to highlight">' + numOtherPredecessors + '</span> '
                         : ''
                 )
 
                 var successorsTag = (
                     hasOtherSuccessors
-                        ? '<span class="successors" title="Highlight successors">' + numOtherSuccessors + '</span> '
+                        ? '<span class="successors" title="Successors, click to highlight">' + numOtherSuccessors + '</span> '
                         : ''
                 )
 
@@ -285,44 +307,59 @@ $(document).ready(async function() {
             })
     }
 
-    async function login() {
-        $(".logout").show()
-        $(".login").hide()
-  
-        credentials = "adovis:" + $("#pat").val()
-        $("#pat").val("")
+    function login() {
+
+        $("#view-main").show()
+        $("#view-login").hide()
+
+        credentials = "adovis:" + $("#input-pat").val()
+        $("#input-pat").val("")
         storage.setItem("credentials", credentials)
-        if (epicId) {
-            await renderEpic(epicId)
-        }
+
+        renderEpic(epicId);
+    }
+
+    async function visualize(epicId) {
+        epicId = $("#input-epicId").val()
+        window.location.hash = '#' + epicId
+        await renderEpic(epicId)
     }
 
     function logout() {
-        $(".logout").hide()
-        $(".login").show()
+        $("#view-main").hide()
+        $("#view-login").show()
 
         credentials = null
         storage.removeItem("credentials")
     }
 
-    $("#go").click(async function() {
-        epicId= $("#epicId").val()
-        storage.setItem("epicId", epicId)
-        await renderEpic(epicId)
-    })
+    $('#button-login').click(login)
+    $("#button-visualize").click(visualize)
+    $("#button-logout").click(logout)
 
-    $('#login').click(login)
-    $("#logout").click(logout)
+    $('#input-epicId').keypress(function (e) {
+        if (e.which == 13) {
+            visualize()
+            return false
+        }
+    });
 
-    if (credentials) {
-        $(".logout").show()
+    $('#input-pat').keypress(function (e) {
+        if (e.which == 13) {
+            login()
+            return false
+        }
+    });
+
+    if (!credentials) {
+        $("#view-login").show()
+        return
     }
-    else {
-        $(".login").show()
-    }
-  
-    if (epicId && credentials) {
-        $("#epicId").val(epicId)
+
+    $("#view-main").show()
+
+    if (epicId) {
+        $("#input-epicId").val(epicId)
         await renderEpic(epicId)
     }
 })
