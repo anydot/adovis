@@ -2,6 +2,10 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 
+#view-main, #view-login {
+    display: none;
+}
+
 #chart {
     border: 0px solid black;
     display: none;
@@ -9,6 +13,10 @@
 
 .epic {
     font-size: large;
+}
+
+.title {
+    cursor: text;
 }
 
 .chart-row {
@@ -88,12 +96,4 @@
     background: rgb(160, 220, 255);
     color: white;
     cursor: default;
-}
-
-.title {
-    cursor: text;
-}
-
-#view-main, #view-login {
-    display: none;
 }

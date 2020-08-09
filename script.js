@@ -196,13 +196,13 @@ $(document).ready(async function() {
 
                 var predecessorsTag = (
                     hasOtherPredecessors
-                        ? '<span class="predecessors" title="Predecessors, click to highlight">' + numOtherPredecessors + '</span> '
+                        ? '<span class="predecessors" title="Other predecessors, click to highlight">' + numOtherPredecessors + '</span> '
                         : ''
                 )
 
                 var successorsTag = (
                     hasOtherSuccessors
-                        ? '<span class="successors" title="Successors, click to highlight">' + numOtherSuccessors + '</span> '
+                        ? '<span class="successors" title="Other successors, click to highlight">' + numOtherSuccessors + '</span> '
                         : ''
                 )
 
