@@ -19,6 +19,10 @@ $(document).ready(async function() {
         epicId = epicId.substr(1)
     }
 
+    let showClosed = false
+    if (storage.getItem('showClosed'))
+        showClosed = true
+
     console.log("epic ID is [", epicId, "]")
 
     function requestVso(resource, query) {
@@ -100,6 +104,8 @@ $(document).ready(async function() {
         chart.append('<h1 class="epic"><a href=' + item.url + ' target="_blank">' + item.wiType + ' ' + item.id + '</a> ' + item.title + '</h1>')
 
         var children = await item.getChildren()
+        if (!showClosed)
+            children = children.filter(item => item.state != 'Closed')
 
         console.log('children', children)
 
@@ -333,33 +339,61 @@ $(document).ready(async function() {
         storage.removeItem("credentials")
     }
 
+    function updateInputEpicValue(epicId) {
+        $("#input-epicId").val(epicId)
+    }
+
+    function updateButtonToggleShowClosedCaption(showClosed) {
+        var button = $('#button-toggle-show-closed')
+        if (showClosed) {
+            button.text('Hide closed items')
+        } else {
+            button.text('Show closed items')
+        }
+    }
+
+    function toggleShowClosed() {
+        if (showClosed) {
+            showClosed = false;
+            storage.removeItem('showClosed')
+        } else {
+            showClosed = true;
+            storage.setItem('showClosed', 'true')
+        }
+        updateButtonToggleShowClosedCaption(showClosed)
+        visualize()
+    }
+
     $('#button-login').click(login)
-    $("#button-visualize").click(visualize)
-    $("#button-logout").click(logout)
+    $('#button-visualize').click(visualize)
+    $('#button-logout').click(logout)
+    $('#button-toggle-show-closed').click(toggleShowClosed)
 
     $('#input-epicId').keypress(function (e) {
         if (e.which == 13) {
             visualize()
             return false
         }
-    });
+    })
 
     $('#input-pat').keypress(function (e) {
         if (e.which == 13) {
             login()
             return false
         }
-    });
+    })
 
     if (!credentials) {
-        $("#view-login").show()
+        $('#view-login').show()
         return
     }
 
     $("#view-main").show()
 
+    updateButtonToggleShowClosedCaption(showClosed)
+
     if (epicId) {
-        $("#input-epicId").val(epicId)
+        updateInputEpicValue(epicId)
         await renderEpic(epicId)
     }
 })
