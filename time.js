@@ -257,8 +257,13 @@ $(document).ready(async function () {
             let totalSeconds = this.duration / 1000
             let seconds = (totalSeconds % 60).toString()
             let minutes = Math.floor(totalSeconds / 60).toString()
-            let hours = Math.floor(totalSeconds / 3600).toString()
+            let hours = Math.floor(totalSeconds / 3600)
             return hours + ':' + minutes.padStart(2, '0') + ':' + seconds.padStart(2, '0')
+        }
+
+        storyPoints() {
+            let totalSeconds = this.duration / 1000
+            return Math.floor(totalSeconds / 3600 / 6 * 8 * 100) / 100
         }
     }
 
@@ -272,6 +277,7 @@ $(document).ready(async function () {
             '<tr class="header">' +
             '<td>Work item</td>' +
             '<td>Time spent</td>' +
+            '<td>Points spent</td>' +
             '</tr>')
 
         recentActivity.forEach(function (item) {
@@ -280,6 +286,7 @@ $(document).ready(async function () {
                 '<tr>' +
                 '<td><a href="' + workItem.url + '" target="_blank">' + workItem.wiType + ' ' + workItem.id + '</a> ' + workItem.title + '</td>' +
                 '<td>' + item.durationFormatted() + '</td>' +
+                '<td>' + item.storyPoints() + '</td>' +
                 '</tr>')
         })
     }
