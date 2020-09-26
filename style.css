@@ -97,3 +97,13 @@
     color: white;
     cursor: default;
 }
+
+#report tr.header td {
+    font-weight: bold;
+    background-color: lightgray;
+}
+
+#report td {
+    padding: 5px;
+    border-bottom: 1px solid gray;
+}
