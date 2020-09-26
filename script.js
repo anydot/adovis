@@ -37,6 +37,7 @@ $(document).ready(async function() {
     }
 
     class WorkItem {
+
         static async getById(id) {
             var response = await requestVso('wit/workitems', { 'id': id, '$expand': 'all'})
             console.log('get by ID response', response)

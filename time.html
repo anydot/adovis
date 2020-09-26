@@ -1,0 +1,88 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+
+    <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8">
+    <title>Adovis Timer</title>
+
+    <script
+        src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+
+    <script src="time.js"></script>
+
+</head>
+
+<body>
+
+    <div id="view-main">
+
+        <p id="chart"></p>
+
+        <p>
+            <button id="button-logout">Log out</button>
+        </p>
+
+    </div>
+
+    <div id="view-login-ado">
+
+        <h1>ADO timer</h1>
+
+        <p>ADO timer allows to easily put the time tracked in Toggl to ADO. To start, please log in to both ADO and Toggl:</p>
+
+        <ol>
+            <li>First, go to <a href="https://dev.azure.com/skype/_usersSettings/tokens" target="_blank">ADO / Personal Access Tokens</a>.</li>
+            <li>Create a new PAT token with the following parameters:</li>
+            <ul>
+                <li><b>Name:</b> ADO RM epic visualizer</li>
+                <li><b>Organization:</b> skype</li>
+                <li><b>Expiration:</b> decide for yourself</li>
+                <li><b>Scopes:</b> custom defined, Work Items (Read)</li>
+            </ul>
+            <li>Copy the token to the input field below. Note:</li>
+            <ul>
+                <li>You might also want to save the token in some secure place in case you need to login again (e. g. on another machine) while it's still active.</li>
+                <li>This page will store the token in the local storage of your browser and it will also send the token with requests to ADO to retrieve the data about the tasks. The page will not use the token in any other ways.</li>
+            </ul>
+            <li>Click the <b>Log in to ADO</b> button.</li>
+        </ol>
+
+        <p>
+            <input id="input-pat-ado" />
+            <button id="button-login-ado">Log in to ADO</button>
+        </p>
+
+    </div>
+
+    <div id="view-login-tgl">
+
+        <h1>ADO timer</h1>
+
+        <p>ADO timer allows to easily put the time tracked in Toggl to ADO. To start, please log in to both ADO and Toggl:</p>
+
+        <ol>
+            <li>Now, go to <a href="https://track.toggl.com/profile" target="_blank">Toggl / Profile</a>.</li>
+            <li>Scroll to the very bottom where you will see you API token. Copy the token to the input field below. Note:</li>
+            <ul>
+                <li>This page will store the token in the local storage of your browser and it will also send the token with requests to ADO to retrieve the data about the tasks. The page will not use the token in any other ways.</li>
+                <li>Since this page is not trusted by Toggl for CORS, the requests to Toggl will have to be sent through a proxy server. The proxy does not log the token or send it with anywhere except Toggl.</li>
+            </ul>
+            <li>Click the <b>Log in to Toggl</b> button.</li>
+        </ol>
+
+        <p>
+            <input id="input-pat-tgl" />
+            <button id="button-login-tgl">Log in to Toggl</button> or
+            <button id="button-logout2">Log out</button>
+        </p>
+
+    </div>
+
+</body>
+
+</html>
