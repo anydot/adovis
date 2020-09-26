@@ -6,6 +6,12 @@ $(document).ready(async function () {
         }
     }
 
+    if (!Array.prototype.append) {
+        Array.prototype.append = function (item) {
+            this[this.length] = item
+        }
+    }
+
     let storage = window.localStorage
 
     let viewMain = $('#view-main')
@@ -98,11 +104,18 @@ $(document).ready(async function () {
 
     function requestVso(resource, params) {
         return request(
-            'https://skype.visualstudio.com/DefaultCollection/_apis/' + resource + '?' +
-            'api-version=1.0&' +
+            'https://dev.azure.com/skype/SCC/_apis/' + resource + '?' +
             $.param(params),
             credentialsAdo
         )
+    }
+
+    function formatTime(totalSeconds) {
+        let seconds = (Math.floor(totalSeconds % 60)).toString()
+        totalMinutes = Math.floor(totalSeconds / 60)
+        let minutes = (totalMinutes % 60).toString()
+        let hours = Math.floor(totalMinutes / 60)
+        return hours + ':' + minutes.padStart(2, '0') + ':' + seconds.padStart(2, '0')
     }
 
     class TogglDetailedReportItem {
@@ -121,18 +134,13 @@ $(document).ready(async function () {
 
             item.id = response.id.toString()
             item.description = response.description
-            item.start = response.start
-            item.end = response.end
+            item.start = Date.parse(response.start) / 1000
+            item.end = Date.parse(response.end) / 1000
             item.project = response.project
-            item.date = TogglDetailedReportItem.getDate(response.start)
             item.workItemId = TogglDetailedReportItem.getWorkItemId(response.description)
-            item.duration = response.dur
+            item.duration = response.dur / 1000
 
             return item
-        }
-
-        static getDate(start) {
-            return start.split('T')[0]
         }
 
         static getWorkItemId(description) {
@@ -154,38 +162,51 @@ $(document).ready(async function () {
     class WorkItem {
 
         static async getManyById(ids) {
-            var response = await requestVso('wit/workitems', { 'ids': ids.join(','), '$expand': 'all' })
+            if (ids.length == 0)
+                return {}
+            let response = await requestVso('wit/workitems', { 'ids': ids.join(','), '$expand': 'all', 'api-version': '1.0' })
             console.log('get many by id response', response)
             let result = {}
-            response.value.forEach(function (item) {
-                result[item.id] = WorkItem.fromVsoResponse(item)
-            })
+            for (const item of response.value) {
+                let workItem = WorkItem.fromVsoResponse(item)
+                let response = await requestVso('wit/workitems/' + workItem.id + '/comments', { 'api-version': '6.0-preview.3', 'order': 'desc', '$expand': 'none' })
+                console.log('get comments', workItem.id, response)
+                workItem.setComments(response.comments)
+                result[item.id] = workItem
+            }
             return result
         }
 
         static fromVsoResponse(response) {
 
-            var item = new WorkItem()
+            let item = new WorkItem()
 
             item.id = response.id.toString()
             item.wiType = response.fields['System.WorkItemType']
             item.title = response.fields['System.Title'].replace(/\[DOR\]/g, '')
             item.url = response._links.html.href.replace(/skype\.visualstudio\.com/, 'dev.azure.com/skype')
-            item.state = response.fields['System.State']
-            item.stateShort = response.fields['System.State'].replace(/ /g, '')
-            item.swag = response.fields['Skype.Swag']
-            item.assignedTo = response.fields['System.AssignedTo']
-            item.assignedToShort = WorkItem.getAssignedToShort(item.assignedTo)
-            item.column = response.fields['System.BoardColumn']
-            item.columnShort = response.fields['System.BoardColumn'].replace(/ /g, '')
-            if (!item.swag)
-                item.swag = 1
+            item.storyPoints = response.fields['Microsoft.VSTS.Scheduling.StoryPoints']
+            if (!item.storyPoints)
+                item.storyPoints = 0
 
             return item
         }
 
         static getAssignedToShort(value) {
             return value ? value.replace(/[^A-Z]/g, '') : ''
+        }
+
+        setComments(comments) {
+            this.comments = comments
+            this.timeSpent = 0
+            this.timeSpentRecordedAt = 0
+            for (const comment of this.comments) {
+                let groups = /total time spent([^0-9]+)([0-9]+):([0-9]+):([0-9]+)/g.exec(comment.text)
+                if (comment.modifiedBy.displayName == 'Stepan Kornyakov' && groups && groups.length == 5) {
+                    this.timeSpent = parseInt(groups[2]) * 3600 + parseInt(groups[3]) * 60 + parseInt(groups[4])
+                    this.timeSpentRecordedAt = Date.parse(comment.modifiedDate) / 1000
+                }
+            }
         }
     }
 
@@ -200,10 +221,10 @@ $(document).ready(async function () {
 
             let mergedActivityItems = {}
 
-            detailedReport.forEach(function (item) {
+            for (const item of detailedReport) {
 
                 if (!item.workItemId)
-                    return
+                    continue
 
                 let key = item.workItemId
                 if (!mergedActivityItems.hasOwnProperty(key)) {
@@ -211,7 +232,7 @@ $(document).ready(async function () {
                 } else {
                     mergedActivityItems[key].add(item)
                 }
-            })
+            }
 
             let recentActivity = Object.values(mergedActivityItems)
             recentActivity.sort(function (a, b) {
@@ -228,42 +249,41 @@ $(document).ready(async function () {
 
             let workItems = await WorkItem.getManyById(workItemIds)
 
-            recentActivity.forEach(function (item) {
+            for (const item of recentActivity) {
                 item.workItem = workItems[item.workItemId]
-            })
+            }
 
             return recentActivity
         }
 
-        static fromDetailedReportItem(response) {
+        static fromDetailedReportItem(other) {
 
             let item = new RecentActivityItem()
 
-            item.workItemId = response.workItemId
-            item.description = response.description
-            item.mostRecentStart = response.start
-            item.duration = response.duration
+            item.workItemId = other.workItemId
+            item.description = other.description
+            item.details = []
+            item.mostRecentStart = other.start
+            item.totalDuration = 0 // milliseconds
+
+            item.add(other)
 
             return item
         }
 
         add(other) {
-            this.duration += other.duration
+            this.details.append(other)
+            this.totalDuration += other.duration
             if (other.start > this.mostRecentStart)
                 this.mostRecentStart = other.start
         }
 
-        durationFormatted() {
-            let totalSeconds = this.duration / 1000
-            let seconds = (totalSeconds % 60).toString()
-            let minutes = Math.floor(totalSeconds / 60).toString()
-            let hours = Math.floor(totalSeconds / 3600)
-            return hours + ':' + minutes.padStart(2, '0') + ':' + seconds.padStart(2, '0')
-        }
-
-        storyPoints() {
-            let totalSeconds = this.duration / 1000
-            return Math.floor(totalSeconds / 3600 / 6 * 8 * 100) / 100
+        getTimeSpentAfter(date) {
+            let filtered = this.details.filter(detail => detail.end > date)
+            let mapped = filtered.map(detail => detail.end - Math.max(detail.start, date))
+            let reduced = mapped.reduce((a, b) => a + b, 0)
+            console.log('getTimeSpentAfter', new Date(date * 1000), mapped, reduced)
+            return reduced
         }
     }
 
@@ -272,23 +292,52 @@ $(document).ready(async function () {
         let recentActivity = await RecentActivityItem.getRecentActivity()
 
         let reportTable = $('#report')
+        let emptyReport = $('#empty-report')
         reportTable.empty()
+
+        if (recentActivity.length == 0) {
+            emptyReport.show()
+            reportTable.hide()
+            return
+        }
+
+        emptyReport.hide()
+        reportTable.show()
+
         reportTable.append(
             '<tr class="header">' +
             '<td>Work item</td>' +
+            '<td>Points</td>' +
             '<td>Time spent</td>' +
-            '<td>Points spent</td>' +
+            '<td>Recorded at</td>' +
+            '<td>Not recorded time</td>' +
+            '<td>Record time</td>' +
+            '<td>Set points to</td>' +
             '</tr>')
 
-        recentActivity.forEach(function (item) {
+        for (const item of recentActivity) {
+
             let workItem = item.workItem
+
+            let timeSpentRecordedAt = workItem.timeSpentRecordedAt ? new Date(workItem.timeSpentRecordedAt * 1000).toLocaleString() : 'never'
+            let notRecordedSpentTime = item.getTimeSpentAfter(workItem.timeSpentRecordedAt)
+
+            let setSpentTime = workItem.timeSpent + notRecordedSpentTime
+
+            const usefuleHoursPerDay = 6
+            let setStoryPoints = workItem.storyPoints + Math.floor(notRecordedSpentTime / 3600 / usefuleHoursPerDay * 100) / 100
+
             reportTable.append(
                 '<tr>' +
                 '<td><a href="' + workItem.url + '" target="_blank">' + workItem.wiType + ' ' + workItem.id + '</a> ' + workItem.title + '</td>' +
-                '<td>' + item.durationFormatted() + '</td>' +
-                '<td>' + item.storyPoints() + '</td>' +
+                '<td>' + workItem.storyPoints + '</td>' +
+                '<td>' + formatTime(workItem.timeSpent) + '</td>' +
+                '<td>' + timeSpentRecordedAt + '</td>' +
+                '<td>' + formatTime(notRecordedSpentTime) + '</td>' +
+                '<td>' + formatTime(setSpentTime) + '</td>' +
+                '<td>' + setStoryPoints + '</td>' +
                 '</tr>')
-        })
+        }
     }
 
     if (credentialsAdo && credentialsTgl) {
