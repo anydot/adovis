@@ -107,3 +107,25 @@
     padding: 5px;
     border-bottom: 1px solid gray;
 }
+
+.notification {
+    display: block;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border-radius: 5px;
+    width: 200px;
+    padding: 10px;
+}
+
+.notification-info {
+    border: 1px solid darkblue;
+    color: darkblue;
+    background-color: lightblue;
+}
+
+.notification-error {
+    border: 1px solid darkred;
+    color: darkred;
+    background-color: pink;
+}

@@ -125,6 +125,12 @@ $(document).ready(async function () {
         return hours + ':' + minutes.padStart(2, '0') + ':' + seconds.padStart(2, '0')
     }
 
+    function showNotification(text, cls, delay) {
+        let notification = $('<div class="notification notification-' + cls + '">' + text + '</div>')
+        $('body').append(notification)
+        notification.delay(delay).fadeOut('1000')
+    }
+
     class TogglDetailedReportItem {
 
         static async getDetailedReport(since, until) {
@@ -222,7 +228,7 @@ $(document).ready(async function () {
         static async getRecentActivity() {
 
             let date = new Date()
-            let formattedDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+            let formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
 
             let detailedReport = await TogglDetailedReportItem.getDetailedReport('2020-09-24', formattedDate)
 
@@ -340,10 +346,34 @@ $(document).ready(async function () {
                 '<td>' + formatTime(workItem.timeSpent) + '</td>' +
                 '<td>' + timeSpentRecordedAt + '</td>' +
                 '<td>' + formatTime(notRecordedSpentTime) + '</td>' +
-                '<td>' + formatTime(setSpentTime) + '</td>' +
-                '<td>' + setStoryPoints + '</td>' +
+                '<td class="record-time">' + formatTime(setSpentTime) + '</td>' +
+                '<td class="set-points">' + setStoryPoints + '</td>' +
                 '</tr>')
         }
+
+        reportTable.find('.record-time').click(function (e) {
+            let $this = $(this)
+            let text = 'total time spent ' + $this.text()
+            navigator.clipboard.writeText(text).then(
+                function() {
+                    showNotification('Copied to clipboard', 'info', 1500)
+                },
+                function() {
+                    showNotification('Failed to copy to clipboard', 'error', 1500)
+                })
+        })
+
+        reportTable.find('.set-points').click(function (e) {
+            let $this = $(this)
+            let text = $this.text()
+            navigator.clipboard.writeText(text).then(
+                function() {
+                    showNotification('Copied to clipboard', 'info', 1500)
+                },
+                function() {
+                    showNotification('Failed to copy to clipboard', 'error', 1500)
+                })
+        })
 
         wait.hide()
         emptyReport.hide()
