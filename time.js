@@ -408,7 +408,7 @@ $(document).ready(async function () {
                 '<td>Not recorded time</td>' +
                 '<td>Record time</td>' +
                 '<td>Set points to</td>' +
-                '<td></td>'
+                '<td>Update</td>'
             ) + '</tr>')
 
         for (const item of recentActivity) {
@@ -429,10 +429,10 @@ $(document).ready(async function () {
                     '<td>' + workItem.storyPoints + '</td>' +
                     '<td>' + formatTime(workItem.timeSpent) + '</td>' +
                     '<td>' + timeSpentRecordedAt + '</td>' +
-                    '<td>' + formatTime(notRecordedSpentTime) + '</td>' +
+                    '<td>' + (notRecordedSpentTime ? formatTime(notRecordedSpentTime) : '-') + '</td>' +
                     '<td class="record-time">' + formatTime(setSpentTime) + '</td>' +
                     '<td class="set-points">' + setStoryPoints + '</td>' +
-                    '<td class="update-task" data-work-item-id="' + workItem.id + '" data-work-item-rev="' + workItem.rev + '"><a href="javascript:void(0)">Update</a></td>'
+                    '<td class="update-task" data-work-item-id="' + workItem.id + '" data-work-item-rev="' + workItem.rev + '">' + (notRecordedSpentTime ? '<a href="javascript:void(0)">Update</a>' : '') + '</td>'
                 ) + '</tr>')
         }
 
