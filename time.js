@@ -20,8 +20,8 @@ $(document).ready(async function () {
 
     let emailAdo = storage.getItem('emailAdo')
     let credentialsAdo = storage.getItem('credentialsAdo')
+    let workspaceId = storage.getItem('workspaceId')
     let credentialsTgl = storage.getItem('credentialsTgl')
-    let workspaceId = '4639597'
 
     function loginAdo() {
 
@@ -33,22 +33,39 @@ $(document).ready(async function () {
             viewLoginTgl.show()
         }
 
-        emailAdo = $('#email-ado').val()
+        emailAdo = $('#input-email-ado').val()
         credentialsAdo = 'adovis:' + $('#input-pat-ado').val()
-        $('#email-ado').val('')
+        $('#input-email-ado').val('')
         $('#input-pat-ado').val('')
         storage.setItem('emailAdo', emailAdo)
         storage.setItem('credentialsAdo', credentialsAdo)
     }
 
-    function loginTgl() {
+    async function loginTgl() {
 
         viewLoginTgl.hide()
-        viewMain.show()
 
+        let noWorkspaceError = $('#no-workspace-error')
         credentialsTgl = $('#input-pat-tgl').val() + ':api_token'
+
+        let workspaceName = $('#input-workspace-tgl').val()
+        workspace = await TglWorkSpace.getByName(workspaceName)
+        if (!workspace) {
+            credentialsTgl = null
+            viewLoginTgl.show()
+            noWorkspaceError.show()
+            return
+        }
+
+        workspaceId = workspace.id
+        $('#input-workspace-tgl').val('')
         $('#input-pat-tgl').val('')
+        storage.setItem('workspaceId', workspaceId)
         storage.setItem('credentialsTgl', credentialsTgl)
+
+        noWorkspaceError.hide()
+
+        viewMain.show()
 
         renderReport()
     }
@@ -61,12 +78,15 @@ $(document).ready(async function () {
 
         emailAdo = null
         credentialsAdo = null
+        workspaceTgl = null
         credentialsTgl = null
         storage.removeItem('emailAdo')
         storage.removeItem('credentialsAdo')
+        storage.removeItem('workspaceTgl')
         storage.removeItem('credentialsTgl')
-        $('#email-ado').val('')
+        $('#imput-email-ado').val('')
         $('#input-pat-ado').val('')
+        $('#input-workspace-tgl').val('')
         $('#input-pat-tgl').val('')
     }
 
@@ -100,11 +120,9 @@ $(document).ready(async function () {
         })
     }
 
-    function requestToggl(resource, params) {
+    function requestTgl(resource, params) {
         return request(
-            'https://api.track.toggl.com/reports/api/' + resource + '?' +
-            'workspace_id=' + workspaceId + '&' +
-            'user_agent=adovis&' +
+            'https://api.track.toggl.com/' + resource + '?' +
             $.param(params),
             credentialsTgl)
     }
@@ -131,26 +149,49 @@ $(document).ready(async function () {
         notification.delay(delay).fadeOut('1000')
     }
 
-    class TogglDetailedReportItem {
+    class TglWorkSpace {
+
+        static async getByName(name) {
+            let response = await requestTgl('api/v8/workspaces', {})
+            console.log('TglWorkSpace.getByName', response)
+            for (const workspace of response) {
+                if (workspace.name == name)
+                    return TglWorkSpace.fromTglResponse(workspace)
+            }
+            return null
+        }
+
+        static fromTglResponse(response) {
+
+            workspace = new TglWorkSpace()
+
+            workspace.id = response.id
+            workspace.name = response.name
+
+            return workspace
+        }
+    }
+
+    class TglDetailedReportItem {
 
         static async getDetailedReport(since, until) {
-            let response = await requestToggl('v2/details', { 'since': since, 'until': until })
+            let response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until,  'user_agent': 'adovis' })
             console.log('get detailed report response', response)
             return response.data.map(function (item) {
-                return TogglDetailedReportItem.fromToggleResponse(item)
+                return TglDetailedReportItem.fromTglResponse(item)
             })
         }
 
-        static fromToggleResponse(response) {
+        static fromTglResponse(response) {
 
-            let item = new TogglDetailedReportItem()
+            let item = new TglDetailedReportItem()
 
             item.id = response.id.toString()
             item.description = response.description
             item.start = Date.parse(response.start) / 1000
             item.end = Date.parse(response.end) / 1000
             item.project = response.project
-            item.workItemId = TogglDetailedReportItem.getWorkItemId(response.description)
+            item.workItemId = TglDetailedReportItem.getWorkItemId(response.description)
             item.duration = response.dur / 1000
 
             return item
@@ -230,7 +271,7 @@ $(document).ready(async function () {
             let date = new Date()
             let formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
 
-            let detailedReport = await TogglDetailedReportItem.getDetailedReport('2020-09-24', formattedDate)
+            let detailedReport = await TglDetailedReportItem.getDetailedReport('2020-09-24', formattedDate)
 
             let mergedActivityItems = {}
 

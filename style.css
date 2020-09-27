@@ -2,7 +2,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 
-#view-main, #view-login, #view-login-ado, #view-login-tgl, #empty-report {
+#view-main, #view-login, #view-login-ado, #view-login-tgl, #empty-report, #no-workspace-error {
     display: none;
 }
 

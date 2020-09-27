@@ -70,8 +70,8 @@
 
         <table>
             <tr>
-                <td><label for="email-ado">E-mail:</label></td>
-                <td><input id="email-ado" /></td>
+                <td><label for="input-email-ado">E-mail:</label></td>
+                <td><input id="input-email-ado" /></td>
                 <td></td>
             </tr>
             <tr>
@@ -99,11 +99,23 @@
             <li>Click the <b>Log in to Toggl</b> button.</li>
         </ol>
 
-        <p>
-            <input id="input-pat-tgl" />
-            <button id="button-login-tgl">Log in to Toggl</button> or
-            <button id="button-logout2">Log out</button>
-        </p>
+        <p id="no-workspace-error"><b>Error:</b> Could not find the workspace.</p>
+
+        <table>
+            <tr>
+                <td><label for="input-workspace-tgl">Workspace name:</label></td>
+                <td><input id="input-workspace-tgl" /></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><label for="input-pat-tgl">User token:</label></td>
+                <td><input id="input-pat-tgl" /></td>
+                <td>
+                    <button id="button-login-tgl">Log in to Toggl</button> or
+                    <button id="button-logout2">Log out</button>
+                </td>
+            </tr>
+        </table>
 
     </div>
 
