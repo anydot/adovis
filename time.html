@@ -21,6 +21,8 @@
 
     <div id="view-main">
 
+        <p id="wait">Wait for it...</p>
+
         <table id="report"></table>
 
         <p id="empty-report">The report fetched from Toggl did not contain any new work items.</p>
@@ -35,7 +37,18 @@
 
         <h1>ADO timer</h1>
 
-        <p>ADO timer allows to easily put the time tracked in Toggl to ADO. To start, please log in to both ADO and Toggl:</p>
+        <p>ADO timer allows to easily put the time tracked in Toggl to ADO. How it works:</p>
+        <ol>
+            <li>You track your time in Toggl:</li>
+            <ol>
+                <li>Whenever you start working on some ADO task, you copy its full name using the copy work item button in the top right corner of the task page (or use Alt+Shift+C).</li>
+                <li>You put this whole line into the description of what you are working on in Toggl.</li>
+            </ol>
+            <li>When you want to sync tracked time to ADO, you open ADO timer and it tells you how many points to write for every tracked work item.</li>
+            <li>Since you could have already worked on a particular task, ADO timer needs to know how much time you spent earlier. To track this, a comment like this must be left in the task: <i>total time spent 0:00:00</i>. ADO timer will tell you what to write in the comment too.</li>
+        </ol>
+
+        <p>To start, please log in to both ADO and Toggl:</p>
 
         <ol>
             <li>First, go to <a href="https://dev.azure.com/skype/_usersSettings/tokens" target="_blank">ADO / Personal Access Tokens</a>.</li>
@@ -51,13 +64,22 @@
                 <li>You might also want to save the token in some secure place in case you need to login again (e. g. on another machine) while it's still active.</li>
                 <li>This page will store the token in the local storage of your browser and it will also send the token with requests to ADO to retrieve the data about the tasks. The page will not use the token in any other ways.</li>
             </ul>
+            <li>Also write your email in the input field below. It is used to find your comments with total time spent.</li>
             <li>Click the <b>Log in to ADO</b> button.</li>
         </ol>
 
-        <p>
-            <input id="input-pat-ado" />
-            <button id="button-login-ado">Log in to ADO</button>
-        </p>
+        <table>
+            <tr>
+                <td><label for="email-ado">E-mail:</label></td>
+                <td><input id="email-ado" /></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><label for="input-pat-ado">PAT:</label></td>
+                <td><input id="input-pat-ado" /></td>
+                <td><button id="button-login-ado">Log in to ADO</button></td>
+            </tr>
+        </table>
 
     </div>
 

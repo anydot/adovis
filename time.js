@@ -18,6 +18,7 @@ $(document).ready(async function () {
     let viewLoginAdo = $('#view-login-ado')
     let viewLoginTgl = $('#view-login-tgl')
 
+    let emailAdo = storage.getItem('emailAdo')
     let credentialsAdo = storage.getItem('credentialsAdo')
     let credentialsTgl = storage.getItem('credentialsTgl')
     let workspaceId = '4639597'
@@ -32,8 +33,11 @@ $(document).ready(async function () {
             viewLoginTgl.show()
         }
 
+        emailAdo = $('#email-ado').val()
         credentialsAdo = 'adovis:' + $('#input-pat-ado').val()
+        $('#email-ado').val('')
         $('#input-pat-ado').val('')
+        storage.setItem('emailAdo', emailAdo)
         storage.setItem('credentialsAdo', credentialsAdo)
     }
 
@@ -55,10 +59,13 @@ $(document).ready(async function () {
         viewLoginTgl.hide()
         viewLoginAdo.show()
 
+        emailAdo = null
         credentialsAdo = null
         credentialsTgl = null
+        storage.removeItem('emailAdo')
         storage.removeItem('credentialsAdo')
         storage.removeItem('credentialsTgl')
+        $('#email-ado').val('')
         $('#input-pat-ado').val('')
         $('#input-pat-tgl').val('')
     }
@@ -202,7 +209,7 @@ $(document).ready(async function () {
             this.timeSpentRecordedAt = 0
             for (const comment of this.comments) {
                 let groups = /total time spent([^0-9]+)([0-9]+):([0-9]+):([0-9]+)/g.exec(comment.text)
-                if (comment.modifiedBy.displayName == 'Stepan Kornyakov' && groups && groups.length == 5) {
+                if (comment.modifiedBy.uniqueName == emailAdo && groups && groups.length == 5) {
                     this.timeSpent = parseInt(groups[2]) * 3600 + parseInt(groups[3]) * 60 + parseInt(groups[4])
                     this.timeSpentRecordedAt = Date.parse(comment.modifiedDate) / 1000
                 }
@@ -291,18 +298,17 @@ $(document).ready(async function () {
 
         let recentActivity = await RecentActivityItem.getRecentActivity()
 
+        let wait = $('#wait')
         let reportTable = $('#report')
         let emptyReport = $('#empty-report')
         reportTable.empty()
 
         if (recentActivity.length == 0) {
-            emptyReport.show()
+            wait.hide()
             reportTable.hide()
+            emptyReport.show()
             return
         }
-
-        emptyReport.hide()
-        reportTable.show()
 
         reportTable.append(
             '<tr class="header">' +
@@ -338,13 +344,17 @@ $(document).ready(async function () {
                 '<td>' + setStoryPoints + '</td>' +
                 '</tr>')
         }
+
+        wait.hide()
+        emptyReport.hide()
+        reportTable.show()
     }
 
-    if (credentialsAdo && credentialsTgl) {
+    if (credentialsAdo && emailAdo && credentialsTgl) {
         console.log('showing report')
         viewMain.show()
         await renderReport()
-    } else if (credentialsAdo) {
+    } else if (credentialsAdo && emailAdo) {
         console.log('showing log in to tgl')
         viewLoginTgl.show()
     } else {
