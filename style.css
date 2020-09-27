@@ -98,6 +98,10 @@
     cursor: default;
 }
 
+#report {
+    width: 100%;
+}
+
 #report tr.header td {
     font-weight: bold;
     background-color: lightgray;

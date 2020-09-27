@@ -109,15 +109,22 @@ $(document).ready(async function () {
         }
     })
 
-    function request(url, credentials) {
-        return $.ajax({
-            type: 'GET',
+    function request(url, credentials, method, contentType, body) {
+        if (!method)
+            method = 'GET'
+        let arg = {
+            type: method,
             url: url,
             dataType: 'json',
             headers: {
                 'Authorization': 'Basic ' + btoa(credentials)
             }
-        })
+        }
+        if (contentType)
+            arg.contentType = contentType
+        if (body)
+            arg.data = body
+        return $.ajax(arg)
     }
 
     function requestTgl(resource, params) {
@@ -127,11 +134,11 @@ $(document).ready(async function () {
             credentialsTgl)
     }
 
-    function requestVso(resource, params) {
+    function requestVso(resource, params, method, contentType, body) {
         return request(
             'https://dev.azure.com/skype/SCC/_apis/' + resource + '?' +
             $.param(params),
-            credentialsAdo
+            credentialsAdo, method, contentType, body
         )
     }
 
@@ -141,6 +148,14 @@ $(document).ready(async function () {
         let minutes = (totalMinutes % 60).toString()
         let hours = Math.floor(totalMinutes / 60)
         return hours + ':' + minutes.padStart(2, '0') + ':' + seconds.padStart(2, '0')
+    }
+
+    function formatDate(date) {
+        return (
+            date.getDate().toString().padStart(2, '0') + '.' +
+            date.getMonth().toString().padStart(2, '0') + ' ' +
+            date.getHours().toString().padStart(2, '0') + ':' +
+            date.getMinutes().toString().padStart(2, '0'))
     }
 
     function showNotification(text, cls, delay) {
@@ -175,7 +190,7 @@ $(document).ready(async function () {
     class TglDetailedReportItem {
 
         static async getDetailedReport(since, until) {
-            let response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until,  'user_agent': 'adovis' })
+            let response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until, 'user_agent': 'adovis' })
             console.log('get detailed report response', response)
             return response.data.map(function (item) {
                 return TglDetailedReportItem.fromTglResponse(item)
@@ -231,11 +246,38 @@ $(document).ready(async function () {
             return result
         }
 
+        static async updateStoryPoints(id, rev, points) {
+            await requestVso(
+                'wit/workitems/' + id, { 'api-version': '6.0' }, 'PATCH', 'application/json-patch+json',
+                JSON.stringify(
+                    [
+                        {
+                            "op": "test",
+                            "path": "/rev",
+                            "value": rev
+                        },
+                        {
+                            "op": "replace",
+                            "path": "/fields/Microsoft.VSTS.Scheduling.StoryPoints",
+                            "value": points
+                        }
+                    ]))
+        }
+
+        static async postComment(id, text) {
+            await requestVso(
+                'wit/workItems/' + id + '/comments', { 'api-version': '6.0-preview.3' }, 'POST', 'application/json',
+                JSON.stringify({
+                    "text": text
+                }))
+        }
+
         static fromVsoResponse(response) {
 
             let item = new WorkItem()
 
             item.id = response.id.toString()
+            item.rev = response.rev.toString()
             item.wiType = response.fields['System.WorkItemType']
             item.title = response.fields['System.Title'].replace(/\[DOR\]/g, '')
             item.url = response._links.html.href.replace(/skype\.visualstudio\.com/, 'dev.azure.com/skype')
@@ -358,21 +400,22 @@ $(document).ready(async function () {
         }
 
         reportTable.append(
-            '<tr class="header">' +
-            '<td>Work item</td>' +
-            '<td>Points</td>' +
-            '<td>Time spent</td>' +
-            '<td>Recorded at</td>' +
-            '<td>Not recorded time</td>' +
-            '<td>Record time</td>' +
-            '<td>Set points to</td>' +
-            '</tr>')
+            '<tr class="header">' + (
+                '<td>Work item</td>' +
+                '<td>Points</td>' +
+                '<td>Time spent</td>' +
+                '<td>Recorded at</td>' +
+                '<td>Not recorded time</td>' +
+                '<td>Record time</td>' +
+                '<td>Set points to</td>' +
+                '<td></td>'
+            ) + '</tr>')
 
         for (const item of recentActivity) {
 
             let workItem = item.workItem
 
-            let timeSpentRecordedAt = workItem.timeSpentRecordedAt ? new Date(workItem.timeSpentRecordedAt * 1000).toLocaleString() : 'never'
+            let timeSpentRecordedAt = workItem.timeSpentRecordedAt ? formatDate(new Date(workItem.timeSpentRecordedAt * 1000)) : 'never'
             let notRecordedSpentTime = item.getTimeSpentAfter(workItem.timeSpentRecordedAt)
 
             let setSpentTime = workItem.timeSpent + notRecordedSpentTime
@@ -381,39 +424,67 @@ $(document).ready(async function () {
             let setStoryPoints = workItem.storyPoints + Math.floor(notRecordedSpentTime / 3600 / usefuleHoursPerDay * 100) / 100
 
             reportTable.append(
-                '<tr>' +
-                '<td><a href="' + workItem.url + '" target="_blank">' + workItem.wiType + ' ' + workItem.id + '</a> ' + workItem.title + '</td>' +
-                '<td>' + workItem.storyPoints + '</td>' +
-                '<td>' + formatTime(workItem.timeSpent) + '</td>' +
-                '<td>' + timeSpentRecordedAt + '</td>' +
-                '<td>' + formatTime(notRecordedSpentTime) + '</td>' +
-                '<td class="record-time">' + formatTime(setSpentTime) + '</td>' +
-                '<td class="set-points">' + setStoryPoints + '</td>' +
-                '</tr>')
+                '<tr>' + (
+                    '<td><a href="' + workItem.url + '" target="_blank">' + workItem.wiType + ' ' + workItem.id + '</a> ' + workItem.title + '</td>' +
+                    '<td>' + workItem.storyPoints + '</td>' +
+                    '<td>' + formatTime(workItem.timeSpent) + '</td>' +
+                    '<td>' + timeSpentRecordedAt + '</td>' +
+                    '<td>' + formatTime(notRecordedSpentTime) + '</td>' +
+                    '<td class="record-time">' + formatTime(setSpentTime) + '</td>' +
+                    '<td class="set-points">' + setStoryPoints + '</td>' +
+                    '<td class="update-task" data-work-item-id="' + workItem.id + '" data-work-item-rev="' + workItem.rev + '"><a href="javascript:void(0)">Update</a></td>'
+                ) + '</tr>')
+        }
+
+        function getTaskUpdateData(tr) {
+            let updateTaskTd = tr.find('.update-task')
+            let id = updateTaskTd.data('work-item-id')
+            let rev = updateTaskTd.data('work-item-rev')
+            let time = tr.find('.record-time').text()
+            let points = tr.find('.set-points').text()
+            return {
+                'id': id,
+                'rev': rev,
+                'comment': 'total time spent: ' + time + "\nstory points: " + points,
+                'commentHtml': '<div>total time spent: ' + time + "<br/>story points: " + points + '</div>',
+                'points': points
+            }
+        }
+
+        function writeToClipboard(text) {
+            navigator.clipboard.writeText(text).then(
+                function () {
+                    showNotification('Copied to clipboard', 'info', 1500)
+                },
+                function () {
+                    showNotification('Failed to copy to clipboard', 'error', 1500)
+                })
         }
 
         reportTable.find('.record-time').click(function (e) {
-            let $this = $(this)
-            let text = 'total time spent: ' + $this.text() + "\nstory points: " + $this.next().text()
-            navigator.clipboard.writeText(text).then(
-                function() {
-                    showNotification('Copied to clipboard', 'info', 1500)
-                },
-                function() {
-                    showNotification('Failed to copy to clipboard', 'error', 1500)
-                })
+            let text = getTaskUpdateData($(this).parent()).comment
+            writeToClipboard(text)
         })
 
         reportTable.find('.set-points').click(function (e) {
-            let $this = $(this)
-            let text = $this.text()
-            navigator.clipboard.writeText(text).then(
-                function() {
-                    showNotification('Copied to clipboard', 'info', 1500)
-                },
-                function() {
-                    showNotification('Failed to copy to clipboard', 'error', 1500)
-                })
+            let text = getTaskUpdateData($(this).parent()).points
+            writeToClipboard(text)
+        })
+
+        reportTable.find('.update-task a').click(async function (e) {
+            let taskUpdateData = getTaskUpdateData($(this).parents('tr').first())
+            try {
+                await WorkItem.updateStoryPoints(taskUpdateData.id, taskUpdateData.rev, taskUpdateData.points)
+                await WorkItem.postComment(taskUpdateData.id, taskUpdateData.commentHtml)
+                showNotification('Updated', 'info', 1500)
+            } catch(error) {
+                console.log('error updating task', error)
+                if (error.status == 412) {
+                    showNotification('Could not update the task due to a conflict. Update the report and try again.', 'error', 5000)
+                } else {
+                    showNotification('Could not update the task due to an unknown error. See logs in Dev Tools for more details.', 'error', 5000)
+                }
+            }
         })
 
         wait.hide()
