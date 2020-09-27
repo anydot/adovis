@@ -49,7 +49,7 @@ $(document).ready(async function () {
         credentialsTgl = $('#input-pat-tgl').val() + ':api_token'
 
         let workspaceName = $('#input-workspace-tgl').val()
-        workspace = await TglWorkSpace.getByName(workspaceName)
+        let workspace = await TglWorkSpace.getByName(workspaceName)
         if (!workspace) {
             credentialsTgl = null
             viewLoginTgl.show()
@@ -178,7 +178,7 @@ $(document).ready(async function () {
 
         static fromTglResponse(response) {
 
-            workspace = new TglWorkSpace()
+            let workspace = new TglWorkSpace()
 
             workspace.id = response.id
             workspace.name = response.name
