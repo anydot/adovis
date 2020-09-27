@@ -394,7 +394,7 @@ $(document).ready(async function () {
 
         reportTable.find('.record-time').click(function (e) {
             let $this = $(this)
-            let text = 'total time spent ' + $this.text()
+            let text = 'total time spent: ' + $this.text() + "\nstory points: " + $this.next().text()
             navigator.clipboard.writeText(text).then(
                 function() {
                     showNotification('Copied to clipboard', 'info', 1500)
