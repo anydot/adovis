@@ -2,7 +2,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 
-#view-main, #view-login, #view-login-ado, #view-login-tgl, #empty-report, #no-workspace-error {
+#view-main, #view-login, #view-login-ado, #view-login-tgl, #empty-report, #no-workspace-error, #icons {
     display: none;
 }
 
@@ -98,38 +98,21 @@
     cursor: default;
 }
 
-#report {
-    width: 100%;
-}
-
-#report tr.header td {
-    font-weight: bold;
-    background-color: lightgray;
-}
-
-#report td {
-    padding: 5px;
-    border-bottom: 1px solid gray;
+#report td, #report th {
+    vertical-align: middle;
 }
 
 .notification {
     display: block;
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 20px;
+    right: 20px;
     border-radius: 5px;
-    width: 200px;
+    width: 300px;
     padding: 10px;
+    border: 1px solid;
 }
 
-.notification-info {
-    border: 1px solid darkblue;
-    color: darkblue;
-    background-color: lightblue;
-}
-
-.notification-error {
-    border: 1px solid darkred;
-    color: darkred;
-    background-color: pink;
+.cursor-pointer {
+    cursor: pointer;
 }

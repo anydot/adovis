@@ -4,13 +4,25 @@
 
 <head>
 
-    <link rel="stylesheet" href="style.css">
     <meta charset="utf-8">
-    <title>Adovis Timer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <script
-        src="https://code.jquery.com/jquery-3.3.1.js"
-        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+    <title>ADO Timer</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+
+    <script src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
 
     <script src="time.js"></script>
@@ -19,105 +31,156 @@
 
 <body>
 
-    <div id="view-main">
+    <div class="container-fluid">
 
-        <p id="wait">Wait for it...</p>
+        <div id="view-main">
 
-        <table id="report"></table>
+            <h1>ADO Timer</h1>
 
-        <p id="empty-report">The report fetched from Toggl did not contain any new work items.</p>
+            <p id="wait">Wait for it...</p>
 
-        <p>
-            <button id="button-logout">Log out</button>
-        </p>
+            <table id="report" class="table"></table>
 
-    </div>
+            <p id="empty-report">The report fetched from Toggl did not contain any new work items.</p>
 
-    <div id="view-login-ado">
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    <button id="button-logout" class="btn btn-primary">Log out</button>
+                </div>
+            </div>
 
-        <h1>ADO timer</h1>
+        </div>
 
-        <p>ADO timer allows to easily put the time tracked in Toggl to ADO. How it works:</p>
-        <ol>
-            <li>You track your time in Toggl:</li>
+        <div id="view-login-ado">
+
+            <h1>ADO Timer</h1>
+
+            <p>ADO timer allows to easily put the time tracked in Toggl to ADO. Here's how it works:</p>
             <ol>
-                <li>Whenever you start working on some ADO task, you copy its full name using the copy work item button in the top right corner of the task page (or use Alt+Shift+C).</li>
-                <li>You put this whole line into the description of what you are working on in Toggl.</li>
+                <li>You track time using Toggl:</li>
+                <ol>
+                    <li>Whenever you start working on some ADO task, you copy its full name using the copy work item
+                        button
+                        in the top right corner of the task page (or by using Alt+Shift+C).</li>
+                    <li>You put this whole line into the description of what you are working on in Toggl.</li>
+                </ol>
+                <li>When you want to sync tracked time to ADO, you open ADO timer and it tells you how much time and how
+                    many points you have tracked since last time you synced to ADO.</li>
+                <li>Since you could have already worked on a particular task, ADO timer needs to know how much time you
+                    spent earlier. To track this, a comment like this must be left in the task: <i>total time spent
+                        0:00:00</i>. ADO timer will tell you what to write in the comment too.</li>
+                <li>You can update tasks manually or you can use the buttons on the right and let ADO Timer do it.</li>
             </ol>
-            <li>When you want to sync tracked time to ADO, you open ADO timer and it tells you how many points to write for every tracked work item.</li>
-            <li>Since you could have already worked on a particular task, ADO timer needs to know how much time you spent earlier. To track this, a comment like this must be left in the task: <i>total time spent 0:00:00</i>. ADO timer will tell you what to write in the comment too.</li>
-        </ol>
 
-        <p>To start, please log in to both ADO and Toggl:</p>
+            <p>To start, please log in to both ADO and Toggl:</p>
 
-        <ol>
-            <li>First, go to <a href="https://dev.azure.com/skype/_usersSettings/tokens" target="_blank">ADO / Personal Access Tokens</a>.</li>
-            <li>Create a new PAT token with the following parameters:</li>
-            <ul>
-                <li><b>Name:</b> ADO RM epic visualizer</li>
-                <li><b>Organization:</b> skype</li>
-                <li><b>Expiration:</b> decide for yourself</li>
-                <li><b>Scopes:</b> custom defined, Work Items (Read)</li>
-            </ul>
-            <li>Copy the token to the input field below. Note:</li>
-            <ul>
-                <li>You might also want to save the token in some secure place in case you need to login again (e. g. on another machine) while it's still active.</li>
-                <li>This page will store the token in the local storage of your browser and it will also send the token with requests to ADO to retrieve the data about the tasks. The page will not use the token in any other ways.</li>
-            </ul>
-            <li>Also write your email in the input field below. It is used to find your comments with total time spent.</li>
-            <li>Click the <b>Log in to ADO</b> button.</li>
-        </ol>
+            <ol>
+                <li>First, go to <a href="https://dev.azure.com/skype/_usersSettings/tokens" target="_blank">ADO /
+                        Personal Access Tokens</a>.</li>
+                <li>Create a new PAT token with the following parameters:</li>
+                <ul>
+                    <li><b>Name:</b> ADO RM epic visualizer</li>
+                    <li><b>Organization:</b> skype</li>
+                    <li><b>Expiration:</b> decide for yourself</li>
+                    <li><b>Scopes:</b> custom defined, Work Items (Read)</li>
+                </ul>
+                <li>Copy the token to the input field below. Note:</li>
+                <ul>
+                    <li>You might also want to save the token in some secure place in case you need to login again (e.
+                        g. on another machine) while it's still active.</li>
+                    <li>This page will store the token in the local storage of your browser and it will also send the
+                        token with requests to ADO to retrieve the data about the tasks. The page will not use the token
+                        in any other ways.</li>
+                </ul>
+                <li>Also write your email in the input field below. It is used to find your comments with total time
+                    spent.
+                </li>
+                <li>Click the <b>Log in to ADO</b> button.</li>
+            </ol>
 
-        <table>
-            <tr>
-                <td><label for="input-email-ado">E-mail:</label></td>
-                <td><input id="input-email-ado" /></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td><label for="input-pat-ado">PAT:</label></td>
-                <td><input id="input-pat-ado" /></td>
-                <td><button id="button-login-ado">Log in to ADO</button></td>
-            </tr>
-        </table>
+            <div class="form-group row">
+                <label for="input-email-ado" class="col-sm-1 col-form-label">E-mail:</label></td>
+                <div class="col-sm-3">
+                    <input id="input-email-ado" placeholder="Email" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="input-pat-ado" class="col-sm-1 col-form-label">PAT:</label>
+                <div class="col-sm-3">
+                    <input id="input-pat-ado" placeholder="PAT" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    <button id="button-login-ado" class="btn btn-primary">Log in to ADO</button>
+                </div>
+            </div>
 
-    </div>
+        </div>
 
-    <div id="view-login-tgl">
+        <div id="view-login-tgl">
 
-        <h1>ADO timer</h1>
+            <h1>ADO Timer</h1>
 
-        <p>ADO timer allows to easily put the time tracked in Toggl to ADO. To start, please log in to both ADO and Toggl:</p>
+            <p>ADO timer allows to easily put the time tracked in Toggl to ADO. To start, please log in to both ADO and
+                Toggl:</p>
 
-        <ol>
-            <li>Now, go to <a href="https://track.toggl.com/profile" target="_blank">Toggl / Profile</a>.</li>
-            <li>Scroll to the very bottom where you will see you API token. Copy the token to the input field below. Note:</li>
-            <ul>
-                <li>This page will store the token in the local storage of your browser and it will also send the token with requests to ADO to retrieve the data about the tasks. The page will not use the token in any other ways.</li>
-                <li>Since this page is not trusted by Toggl for CORS, the requests to Toggl will have to be sent through a proxy server. The proxy does not log the token or send it with anywhere except Toggl.</li>
-            </ul>
-            <li>Click the <b>Log in to Toggl</b> button.</li>
-        </ol>
+            <ol>
+                <li>Now, go to <a href="https://track.toggl.com/profile" target="_blank">Toggl / Profile</a>.</li>
+                <li>Scroll to the very bottom where you will see you API token. Copy the token to the input field below.
+                    Note:</li>
+                <ul>
+                    <li>This page will store the token in the local storage of your browser and it will also send the
+                        token
+                        with requests to ADO to retrieve the data about the tasks. The page will not use the token in
+                        any
+                        other ways.</li>
+                    <li>Since this page is not trusted by Toggl for CORS, the requests to Toggl will have to be sent
+                        through
+                        a proxy server. The proxy does not log the token or send it with anywhere except Toggl.</li>
+                </ul>
+                <li>Click the <b>Log in to Toggl</b> button.</li>
+            </ol>
 
-        <p id="no-workspace-error"><b>Error:</b> Could not find the workspace.</p>
+            <p id="no-workspace-error" class="alert alert-danger"><b>Error:</b> Could not find the workspace.</p>
 
-        <table>
-            <tr>
-                <td><label for="input-workspace-tgl">Workspace name:</label></td>
-                <td><input id="input-workspace-tgl" /></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td><label for="input-pat-tgl">User token:</label></td>
-                <td><input id="input-pat-tgl" /></td>
-                <td>
-                    <button id="button-login-tgl">Log in to Toggl</button> or
-                    <button id="button-logout2">Log out</button>
-                </td>
-            </tr>
-        </table>
+            <div class="form-group row">
+                <label for="input-workspace-tgl" class="col-sm-1 col-form-label">Workspace:</label>
+                <div class="col-sm-3">
+                    <input id="input-workspace-tgl" placeholder="Workspace name" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="input-pat-tgl" class="col-sm-1 col-form-label">User token:</label>
+                <div class="col-sm-3">
+                    <input id="input-pat-tgl" placeholder="User token" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    <button id="button-login-tgl" class="btn btn-primary">Log in to Toggl</button> or
+                    <button id="button-logout2" class="btn btn-secondary">Log out</button>
+                </div>
+            </div>
+            </form>
 
-    </div>
+        </div>
+
+        <div id="icons">
+            <svg id="i-upload" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none"
+                stroke="blue" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <path d="M9 22 C0 23 1 12 9 13 6 2 23 2 22 10 32 7 32 23 23 22 M11 18 L16 14 21 18 M16 14 L16 29" />
+            </svg>
+            <svg id="i-clock" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none"
+                stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <circle cx="16" cy="16" r="14" />
+                <path d="M16 8 L16 16 20 20" />
+            </svg>
+            <svg id="i-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"
+                fill="none" stroke="green" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <path d="M2 20 L12 28 30 4" />
+            </svg>
+        </div>
 
 </body>
 

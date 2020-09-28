@@ -17,6 +17,7 @@ $(document).ready(async function () {
     let viewMain = $('#view-main')
     let viewLoginAdo = $('#view-login-ado')
     let viewLoginTgl = $('#view-login-tgl')
+    let noWorkspaceError = $('#no-workspace-error')
 
     let emailAdo = storage.getItem('emailAdo')
     let credentialsAdo = storage.getItem('credentialsAdo')
@@ -45,7 +46,6 @@ $(document).ready(async function () {
 
         viewLoginTgl.hide()
 
-        let noWorkspaceError = $('#no-workspace-error')
         credentialsTgl = $('#input-pat-tgl').val() + ':api_token'
 
         let workspaceName = $('#input-workspace-tgl').val()
@@ -74,6 +74,7 @@ $(document).ready(async function () {
 
         viewMain.hide()
         viewLoginTgl.hide()
+        noWorkspaceError.hide()
         viewLoginAdo.show()
 
         emailAdo = null
@@ -159,7 +160,7 @@ $(document).ready(async function () {
     }
 
     function showNotification(text, cls, delay) {
-        let notification = $('<div class="notification notification-' + cls + '">' + text + '</div>')
+        let notification = $('<div class="alert-' + cls + ' notification">' + text + '</div>')
         $('body').append(notification)
         notification.delay(delay).fadeOut('1000')
     }
@@ -244,6 +245,10 @@ $(document).ready(async function () {
                 result[item.id] = workItem
             }
             return result
+        }
+
+        static async getById(id) {
+            return (await WorkItem.getManyById([id]))[id]
         }
 
         static async updateStoryPoints(id, rev, points) {
@@ -383,6 +388,16 @@ $(document).ready(async function () {
         }
     }
 
+    function writeToClipboard(text) {
+        navigator.clipboard.writeText(text).then(
+            function () {
+                showNotification('Copied to clipboard', 'success', 1500)
+            },
+            function () {
+                showNotification('Failed to copy to clipboard', 'danger', 1500)
+            })
+    }
+
     async function renderReport() {
 
         let recentActivity = await RecentActivityItem.getRecentActivity()
@@ -400,18 +415,18 @@ $(document).ready(async function () {
         }
 
         reportTable.append(
-            '<tr class="header">' + (
-                '<td>Work item</td>' +
-                '<td>Points</td>' +
-                '<td>Time spent</td>' +
-                '<td>Recorded at</td>' +
-                '<td>Not recorded time</td>' +
-                '<td>Record time</td>' +
-                '<td>Set points to</td>' +
-                '<td>Update</td>'
-            ) + '</tr>')
+            '<thead><tr>' + (
+                '<th>Work item</th>' +
+                '<th>Current points</th>' +
+                '<th>Time spent</th>' +
+                '<th>Recorded at</th>' +
+                '<th>Not recorded time</th>' +
+                '<th>Record time</th>' +
+                '<th>Set points to</th>' +
+                '<th></th>'
+            ) + '</tr></thead>')
 
-        for (const item of recentActivity) {
+        function getTableRow(item) {
 
             let workItem = item.workItem
 
@@ -423,69 +438,78 @@ $(document).ready(async function () {
             const usefuleHoursPerDay = 6
             let setStoryPoints = workItem.storyPoints + Math.floor(notRecordedSpentTime / 3600 / usefuleHoursPerDay * 100) / 100
 
-            reportTable.append(
+            let content =
                 '<tr>' + (
                     '<td><a href="' + workItem.url + '" target="_blank">' + workItem.wiType + ' ' + workItem.id + '</a> ' + workItem.title + '</td>' +
                     '<td>' + workItem.storyPoints + '</td>' +
                     '<td>' + formatTime(workItem.timeSpent) + '</td>' +
                     '<td>' + timeSpentRecordedAt + '</td>' +
-                    '<td>' + (notRecordedSpentTime ? formatTime(notRecordedSpentTime) : '-') + '</td>' +
-                    '<td class="record-time">' + formatTime(setSpentTime) + '</td>' +
-                    '<td class="set-points">' + setStoryPoints + '</td>' +
-                    '<td class="update-task" data-work-item-id="' + workItem.id + '" data-work-item-rev="' + workItem.rev + '">' + (notRecordedSpentTime ? '<a href="javascript:void(0)">Update</a>' : '') + '</td>'
-                ) + '</tr>')
-        }
+                    '<td>' + (
+                        notRecordedSpentTime ?
+                            formatTime(notRecordedSpentTime) :
+                            ''
+                    ) + '</td>' +
+                    '<td class="record-time">' + (
+                        notRecordedSpentTime ?
+                            formatTime(setSpentTime) :
+                            ''
+                    ) + '</td>' +
+                    '<td class="set-points">' + (
+                        notRecordedSpentTime ?
+                            setStoryPoints :
+                            ''
+                    ) + '</td>' +
+                    '<td class="update-task">' + (
+                        (notRecordedSpentTime ?
+                            '<div class="cursor-pointer"><svg width="32" height="32"><use xlink:href="#i-upload"></use></svg></div>' :
+                            '<div><svg width="32" height="32"><use xlink:href="#i-checkmark"></use></svg></div>')
+                    ) + '</td>'
+                ) + '</tr>'
 
-        function getTaskUpdateData(tr) {
-            let updateTaskTd = tr.find('.update-task')
-            let id = updateTaskTd.data('work-item-id')
-            let rev = updateTaskTd.data('work-item-rev')
-            let time = tr.find('.record-time').text()
-            let points = tr.find('.set-points').text()
-            return {
-                'id': id,
-                'rev': rev,
-                'comment': 'total time spent: ' + time + "\nstory points: " + points,
-                'commentHtml': '<div>total time spent: ' + time + "<br/>story points: " + points + '</div>',
-                'points': points
-            }
-        }
+            let row = $(content)
 
-        function writeToClipboard(text) {
-            navigator.clipboard.writeText(text).then(
-                function () {
-                    showNotification('Copied to clipboard', 'info', 1500)
-                },
-                function () {
-                    showNotification('Failed to copy to clipboard', 'error', 1500)
+            if (notRecordedSpentTime) {
+
+                let comment = 'total time spent: ' + formatTime(setSpentTime) + "\nstory points: " + setStoryPoints
+                let commentHtml = '<div>total time spent: ' + formatTime(setSpentTime) + "<br/>story points: " + setStoryPoints + '</div>'
+
+                row.find('.record-time').click(function (e) {
+                    writeToClipboard(comment)
                 })
+
+                row.find('.set-points').click(function (e) {
+                    writeToClipboard(setStoryPoints)
+                })
+
+                row.find('.update-task div').click(async function (e) {
+                    let $this = $(this)
+                    $this.hide()
+                    $this.after('<div><svg width="32" height="32"><use xlink:href="#i-clock"></use></svg></div>')
+                    try {
+                        await WorkItem.updateStoryPoints(workItem.id, workItem.rev, setStoryPoints)
+                        await WorkItem.postComment(workItem.id, commentHtml)
+                        let updatedWorkItem = await WorkItem.getById(workItem.id)
+                        item.workItem = updatedWorkItem
+                        row.replaceWith(getTableRow(item))
+                        showNotification('Updated', 'success', 1500)
+                    } catch (error) {
+                        $this.next().remove()
+                        $this.show()
+                        console.log('error updating task', error)
+                        if (error.status == 412) {
+                            showNotification('Could not update the task due to a conflict. Refresh the page to update the report and try again.', 'danger', 5000)
+                        } else {
+                            showNotification('Could not update the task due to an unknown error. See logs in Dev Tools for more details.', 'danger', 5000)
+                        }
+                    }
+                })
+            }
+
+            return row
         }
 
-        reportTable.find('.record-time').click(function (e) {
-            let text = getTaskUpdateData($(this).parent()).comment
-            writeToClipboard(text)
-        })
-
-        reportTable.find('.set-points').click(function (e) {
-            let text = getTaskUpdateData($(this).parent()).points
-            writeToClipboard(text)
-        })
-
-        reportTable.find('.update-task a').click(async function (e) {
-            let taskUpdateData = getTaskUpdateData($(this).parents('tr').first())
-            try {
-                await WorkItem.updateStoryPoints(taskUpdateData.id, taskUpdateData.rev, taskUpdateData.points)
-                await WorkItem.postComment(taskUpdateData.id, taskUpdateData.commentHtml)
-                showNotification('Updated', 'info', 1500)
-            } catch(error) {
-                console.log('error updating task', error)
-                if (error.status == 412) {
-                    showNotification('Could not update the task due to a conflict. Update the report and try again.', 'error', 5000)
-                } else {
-                    showNotification('Could not update the task due to an unknown error. See logs in Dev Tools for more details.', 'error', 5000)
-                }
-            }
-        })
+        for (const item of recentActivity)
+            reportTable.append(getTableRow(item))
 
         wait.hide()
         emptyReport.hide()
