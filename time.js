@@ -17,7 +17,6 @@ $(document).ready(async function () {
     let viewMain = $('#view-main')
     let viewLoginAdo = $('#view-login-ado')
     let viewLoginTgl = $('#view-login-tgl')
-    let noWorkspaceError = $('#no-workspace-error')
 
     let emailAdo = storage.getItem('emailAdo')
     let credentialsAdo = storage.getItem('credentialsAdo')
@@ -42,30 +41,55 @@ $(document).ready(async function () {
         storage.setItem('credentialsAdo', credentialsAdo)
     }
 
+    let tglLoginEnabled = true
+
     async function loginTgl() {
 
-        viewLoginTgl.hide()
-
-        credentialsTgl = $('#input-pat-tgl').val() + ':api_token'
-
-        let workspaceName = $('#input-workspace-tgl').val()
-        let workspace = await TglWorkSpace.getByName(workspaceName)
-        if (!workspace) {
-            credentialsTgl = null
-            viewLoginTgl.show()
-            noWorkspaceError.show()
+        if (!tglLoginEnabled)
             return
+
+        tglLoginEnabled = false
+        let message = $('#message')
+        message.empty()
+
+        try {
+
+            message.append('<svg width="32" height="32"><use xlink:href="#i-clock"></use></svg>')
+
+            let credentialsTglTmp = $('#input-pat-tgl').val() + ':api_token'
+
+            let workspaceName = $('#input-workspace-tgl').val()
+            let workspace
+            try {
+                workspace = await TglWorkSpace.getByName(workspaceName, credentialsTglTmp)
+            } catch (error) {
+                if (error.status == 403) {
+                    showNotification('Could not check the workspace because Toggl responded with 403 Forbidden. Check the user token you entered and try again.', 'danger', null, message)
+                } else {
+                    showNotification('Could not check the workspace due to an unknown error. See logs in Dev Tools for more details.', 'danger', null, message)
+                }
+                return
+            }
+
+            if (!workspace) {
+                showNotification('Workspace <b>' + workspaceName + '</b> could not be found. Check the name and try again.', 'danger', null, message)
+                return
+            }
+
+            workspaceId = workspace.id
+            credentialsTgl = credentialsTglTmp
+            storage.setItem('workspaceId', workspaceId)
+            storage.setItem('credentialsTgl', credentialsTgl)
+            $('#input-workspace-tgl').val('')
+            $('#input-pat-tgl').val('')
+
+            viewLoginTgl.hide()
+            viewMain.show()
+            message.empty()
+
+        } finally {
+            tglLoginEnabled = true
         }
-
-        workspaceId = workspace.id
-        $('#input-workspace-tgl').val('')
-        $('#input-pat-tgl').val('')
-        storage.setItem('workspaceId', workspaceId)
-        storage.setItem('credentialsTgl', credentialsTgl)
-
-        noWorkspaceError.hide()
-
-        viewMain.show()
 
         renderReport()
     }
@@ -74,7 +98,6 @@ $(document).ready(async function () {
 
         viewMain.hide()
         viewLoginTgl.hide()
-        noWorkspaceError.hide()
         viewLoginAdo.show()
 
         emailAdo = null
@@ -128,11 +151,11 @@ $(document).ready(async function () {
         return $.ajax(arg)
     }
 
-    function requestTgl(resource, params) {
+    function requestTgl(resource, params, credentials) {
         return request(
             'https://api.track.toggl.com/' + resource + '?' +
             $.param(params),
-            credentialsTgl)
+            credentials ? credentials : credentialsTgl)
     }
 
     function requestVso(resource, params, method, contentType, body) {
@@ -159,16 +182,22 @@ $(document).ready(async function () {
             date.getMinutes().toString().padStart(2, '0'))
     }
 
-    function showNotification(text, cls, delay) {
-        let notification = $('<div class="alert-' + cls + ' notification">' + text + '</div>')
-        $('body').append(notification)
-        notification.delay(delay).fadeOut('1000')
+    function showNotification(text, cls, delay, parent) {
+        let cls2 = parent ? 'alert' : 'notification'
+        let notification = $('<div class="alert-' + cls + ' ' + cls2 + '">' + text + '</div>')
+        if (parent)
+            parent.empty()
+        else
+            parent = $('body')
+        parent.append(notification)
+        if (delay)
+            notification.delay(delay).fadeOut('1000')
     }
 
     class TglWorkSpace {
 
-        static async getByName(name) {
-            let response = await requestTgl('api/v8/workspaces', {})
+        static async getByName(name, credentials) {
+            let response = await requestTgl('api/v8/workspaces', {}, credentials)
             console.log('TglWorkSpace.getByName', response)
             for (const workspace of response) {
                 if (workspace.name == name)

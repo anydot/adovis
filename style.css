@@ -116,3 +116,7 @@
 .cursor-pointer {
     cursor: pointer;
 }
+
+#wait-login-tgl {
+    line-height: 32px;
+}

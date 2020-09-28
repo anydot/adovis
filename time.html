@@ -80,7 +80,7 @@
                     <li><b>Name:</b> ADO RM epic visualizer</li>
                     <li><b>Organization:</b> skype</li>
                     <li><b>Expiration:</b> decide for yourself</li>
-                    <li><b>Scopes:</b> custom defined, Work Items (Read)</li>
+                    <li><b>Scopes:</b> custom defined, Work Items (Read & write)</li>
                 </ul>
                 <li>Copy the token to the input field below. Note:</li>
                 <ul>
@@ -97,7 +97,7 @@
             </ol>
 
             <div class="form-group row">
-                <label for="input-email-ado" class="col-sm-1 col-form-label">E-mail:</label></td>
+                <label for="input-email-ado" class="col-sm-1 col-form-label">Email:</label></td>
                 <div class="col-sm-3">
                     <input id="input-email-ado" placeholder="Email" class="form-control" />
                 </div>
@@ -138,7 +138,7 @@
                 <li>Click the <b>Log in to Toggl</b> button.</li>
             </ol>
 
-            <p id="no-workspace-error" class="alert alert-danger"><b>Error:</b> Could not find the workspace.</p>
+            <div id="message"></div>
 
             <div class="form-group row">
                 <label for="input-workspace-tgl" class="col-sm-1 col-form-label">Workspace:</label>
@@ -153,7 +153,7 @@
                 </div>
             </div>
             <div class="form-group row">
-                <div class="col-sm-12">
+                <div class="col-sm-6">
                     <button id="button-login-tgl" class="btn btn-primary">Log in to Toggl</button> or
                     <button id="button-logout2" class="btn btn-secondary">Log out</button>
                 </div>
