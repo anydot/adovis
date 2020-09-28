@@ -105,8 +105,8 @@
 .notification {
     display: block;
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 15px;
+    right: 15px;
     border-radius: 5px;
     width: 300px;
     padding: 10px;
