@@ -151,11 +151,22 @@ $(document).ready(async function () {
         return $.ajax(arg)
     }
 
-    function requestTgl(resource, params, credentials) {
-        return request(
-            'https://api.track.toggl.com/' + resource + '?' +
-            $.param(params),
-            credentials ? credentials : credentialsTgl)
+    async function requestTgl(resource, params, credentials) {
+        for (let i = 0; i < 4; i++) {
+            try {
+                return await request(
+                    'https://api.track.toggl.com/' + resource + '?' +
+                    $.param(params),
+                    credentials ? credentials : credentialsTgl)
+            } catch (error) {
+                if (error.status != 0) {
+                    showNotification('Could not retrieve data from Toggl due to an unknown error. See logs in Dev Tools for more details.', 'danger', 5000)
+                    throw error
+                }
+                await sleep(Math.pow(2, i) * 1100) // https://github.com/toggl/toggl_api_docs#the-api-format
+            }
+        }
+        showNotification('Could not retrieve data from Toggl because it responded with 429 Too Many Requests. See logs in Dev Tools for more details.', 'danger', 5000)
     }
 
     function requestVso(resource, params, method, contentType, body) {
@@ -194,6 +205,10 @@ $(document).ready(async function () {
             notification.delay(delay).fadeOut('1000')
     }
 
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     class TglWorkSpace {
 
         static async getByName(name, credentials) {
@@ -221,8 +236,14 @@ $(document).ready(async function () {
 
         static async getDetailedReport(since, until) {
             let response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until, 'user_agent': 'adovis' })
-            console.log('get detailed report response', response)
-            return response.data.map(function (item) {
+            let responseData = response.data
+            console.log('TglDetailedReportItem.getDetailedReport', response)
+            if (responseData.length == response.per_page) {
+                response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until, 'user_agent': 'adovis', 'page': 2 })
+                console.log('TglDetailedReportItem.getDetailedReport 2', response)
+                responseData = responseData.concat(response.data)
+            }
+            return responseData.map(function (item) {
                 return TglDetailedReportItem.fromTglResponse(item)
             })
         }
