@@ -335,6 +335,7 @@ $(document).ready(async function () {
                 if (comment.modifiedBy.uniqueName == emailAdo && groups && groups.length == 5) {
                     this.timeSpent = parseInt(groups[2]) * 3600 + parseInt(groups[3]) * 60 + parseInt(groups[4])
                     this.timeSpentRecordedAt = Date.parse(comment.modifiedDate) / 1000
+                    break
                 }
             }
         }
@@ -465,7 +466,7 @@ $(document).ready(async function () {
             let setSpentTime = workItem.timeSpent + notRecordedSpentTime
 
             const usefuleHoursPerDay = 6
-            let setStoryPoints = workItem.storyPoints + Math.floor(notRecordedSpentTime / 3600 / usefuleHoursPerDay * 100) / 100
+            let setStoryPoints = Math.round((workItem.storyPoints + notRecordedSpentTime / 3600 / usefuleHoursPerDay) * 100) / 100
 
             let content =
                 '<tr>' + (
