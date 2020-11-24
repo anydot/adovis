@@ -235,15 +235,19 @@ $(document).ready(async function () {
     class TglDetailedReportItem {
 
         static async getDetailedReport(since, until) {
-            let response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until, 'user_agent': 'adovis' })
-            let responseData = response.data
-            console.log('TglDetailedReportItem.getDetailedReport', response)
-            if (responseData.length == response.per_page) {
-                response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until, 'user_agent': 'adovis', 'page': 2 })
-                console.log('TglDetailedReportItem.getDetailedReport 2', response)
-                responseData = responseData.concat(response.data)
+            let response = null
+            let result = []
+            let pageToRequest = 1
+            let maxPages = 4
+            do {
+                console.log('TglDetailedReportItem.getDetailedReport requesting page ' + pageToRequest)
+                response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until, 'user_agent': 'adovis', 'page': pageToRequest })
+                console.log('TglDetailedReportItem.getDetailedReport got response', response)
+                result = result.concat(response.data)
+                pageToRequest++
             }
-            return responseData.map(function (item) {
+            while (response.data.length == response.per_page && pageToRequest <= maxPages)
+            return result.map(function (item) {
                 return TglDetailedReportItem.fromTglResponse(item)
             })
         }
