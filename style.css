@@ -19,6 +19,14 @@
     cursor: text;
 }
 
+.swag {
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
+    background-color: gainsboro;
+    color: white;
+    cursor: text;
+}
+
 .chart-row {
     padding: 5px;
     cursor: default;
@@ -30,12 +38,12 @@
 }
 
 .chart-row-predecessor-highlighted {
-    background-color: antiquewhite;
+    background-color: rgb(255, 200, 200);
     border-radius: 5px;
 }
 
 .chart-row-successor-highlighted {
-    background-color: paleturquoise;
+    background-color: rgb(160, 255, 160);
     border-radius: 5px;
 }
 

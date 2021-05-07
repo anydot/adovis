@@ -68,8 +68,6 @@ $(document).ready(async function() {
             item.assignedToShort = WorkItem.getAssignedToShort(item.assignedTo)
             item.column = response.fields['System.BoardColumn']
             item.columnShort = response.fields['System.BoardColumn'].replace(/ /g, '')
-            if (!item.swag)
-                item.swag = 1
             item.childIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Forward')
             item.predecessorIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Dependency-Reverse')
             item.successorIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Dependency-Forward')
@@ -121,6 +119,7 @@ $(document).ready(async function() {
         children.forEach(function(item) {
             graph[item.id] = {
                 workItem: item,
+                longestSwag: 0,
                 longestOffset: 0,
                 longestPredecessor: null
             }
@@ -142,9 +141,7 @@ $(document).ready(async function() {
 
     function renderDependencyGraph($chart, roots, graph) {
 
-        var barLength = 60
-
-        var calculateOffsets = function(offset, predecesor, ids) {
+        var calculateOffsets = function(swag, offset, predecesor, ids) {
 
             ids.forEach(function(id) {
 
@@ -154,18 +151,23 @@ $(document).ready(async function() {
                     return
 
                 if (offset > graphItem.longestOffset) {
+                    graphItem.longestSwag = swag
                     graphItem.longestOffset = offset
                     graphItem.longestPredecessor = predecesor
                 }
 
                 var successorIds = graphItem.workItem.successorIds
                 if (successorIds) {
-                    calculateOffsets(offset + graphItem.workItem.swag * barLength, graphItem.workItem, successorIds)
+                    calculateOffsets(
+                      (swag != null && graphItem.workItem.swag) ? (swag + graphItem.workItem.swag) : null,
+                      offset + (graphItem.workItem.swag ? graphItem.workItem.swag : 1),
+                      graphItem.workItem,
+                      successorIds)
                 }
             })
         }
 
-        calculateOffsets(0, null, Object.keys(roots))
+        calculateOffsets(0, 0, null, Object.keys(roots))
 
         var renderItems = function($chart, predecessor, unorderedIds) {
 
@@ -233,6 +235,14 @@ $(document).ready(async function() {
                     '</span>'
                 )
 
+                const barLenght = 40;
+
+                const thisSwag = graphItem.workItem.swag ? graphItem.workItem.swag : '?'
+                const totalSwag =
+                  (graphItem.longestSwag != null && graphItem.workItem.swag)
+                    ? (graphItem.longestSwag + graphItem.workItem.swag)
+                    : '?'
+
                 $chart.append(
                     '<div ' +
                         'class="chart-row" ' +
@@ -240,15 +250,16 @@ $(document).ready(async function() {
                         'id="row-workItem' + graphItem.workItem.id + '">' +
                         '<div ' +
                             'style="' +
-                                'margin-left: ' + graphItem.longestOffset + 'px; ' +
+                                'margin-left: ' + graphItem.longestOffset * barLenght + 'px; ' +
                             '" ' +
                         '>' +
                             columnTag +
+                            assignedToTag +
                             predecessorsTag +
                             successorsTag +
-                            assignedToTag +
                             workItemHref +
                             title +
+                            ' <span class="swag" title="Swag / total swag to completion">' + thisSwag + ' / ' + totalSwag + '</span>' +
                         '</div>' +
                     '</div>')
 
@@ -388,6 +399,8 @@ $(document).ready(async function() {
         $('#view-login').show()
         return
     }
+
+    updateButtonToggleShowClosedCaption()
 
     $("#view-main").show()
 
