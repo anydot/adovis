@@ -30,6 +30,7 @@
 .chart-row {
     padding: 5px;
     cursor: default;
+    white-space: nowrap;
 }
 
 .chart-row-highlighted {
