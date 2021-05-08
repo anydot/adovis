@@ -1,5 +1,7 @@
 $(document).ready(async function() {
 
+    const adovisTitle = $('#adovis-title')
+
     if (!Array.prototype.last) {
         Array.prototype.last = function() {
             return this[this.length - 1]
@@ -104,6 +106,7 @@ $(document).ready(async function() {
 
         var chart = $("#chart")
 
+        adovisTitle.show()
         chart.hide()
         chart.empty()
 
@@ -177,8 +180,10 @@ $(document).ready(async function() {
 
         renderDependencyGraph(chart, roots, graph)
 
-        if (graph)
+        if (graph) {
             chart.show(epicId)
+            adovisTitle.hide()
+        }
     }
 
     function renderDependencyGraph($chart, roots, graph) {
