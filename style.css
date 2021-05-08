@@ -2,6 +2,10 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 
+h1.display-4 {
+    margin-bottom: 1rem;
+}
+
 #view-main, #view-login, #view-login-ado, #view-login-tgl, #empty-report, #no-workspace-error, #icons {
     display: none;
 }
@@ -13,6 +17,7 @@
 
 .feature {
     font-size: large;
+    margin: 1rem 0 1rem 0;
 }
 
 .title {
@@ -20,32 +25,32 @@
 }
 
 .swag {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     background-color: gainsboro;
     color: white;
     cursor: text;
 }
 
 .chart-row {
-    padding: 5px;
+    padding: 0.25rem;
     cursor: default;
     white-space: nowrap;
 }
 
 .chart-row-highlighted {
     background-color: gainsboro;
-    border-radius: 5px;
+    border-radius: 0.25rem;
 }
 
 .chart-row-predecessor-highlighted {
     background-color: rgb(255, 200, 200);
-    border-radius: 5px;
+    border-radius: 0.25rem;
 }
 
 .chart-row-successor-highlighted {
     background-color: rgb(160, 255, 160);
-    border-radius: 5px;
+    border-radius: 0.25rem;
 }
 
 .task-EnablingSpecification {
@@ -53,64 +58,64 @@
 }
 
 .column-Pending {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     color: black;
     background: rgb(255, 200, 200);
     cursor: default;
 }
 
 .column-Clarify {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     color: black;
     background: rgb(255, 220, 200);
     cursor: default;
 }
 
 .column-Ready {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     color: black;
     background: rgb(240, 240, 140);
     cursor: default;
 }
 
 .column-InProgress {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     color: black;
     background: rgb(160, 220, 255);
     cursor: default;
 }
 
 .column-Closed {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     color: black;
     background: rgb(140, 240, 140);
     cursor: default;
 }
 
 .predecessors {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     background: rgb(140, 140, 140);
     color: white;
     cursor: default;
 }
 
 .successors {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     background: rgb(200, 200, 200);
     color: white;
     cursor: default;
 }
 
 .assignedTo {
-    border-radius: 5px;
-    padding: 0 5px 0 5px;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem 0 0.25rem;
     background: rgb(160, 220, 255);
     color: white;
     cursor: default;
@@ -123,9 +128,9 @@
 .notification {
     display: block;
     position: absolute;
-    top: 15px;
-    right: 15px;
-    border-radius: 5px;
+    top: 0.75rem;
+    right: 0.25rem;
+    border-radius: 0.25rem;
     width: 300px;
     padding: 10px;
     border: 1px solid;

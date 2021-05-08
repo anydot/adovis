@@ -8,9 +8,20 @@
     <meta charset="utf-8">
     <title>ADO Epic Visualizer</title>
 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+
     <script
         src="https://code.jquery.com/jquery-3.3.1.js"
         integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
 
     <script src="script.js"></script>
@@ -19,18 +30,24 @@
 
 <body>
 
+    <div class="container-fluid">
+
     <div id="view-main">
+
+        <h1 class="display-4">ADO Epic Visualizer</h1>
 
         <p id="chart"></p>
 
-        <p>
-            <input id="input-epicId" />
-            <button id="button-visualize">Visualize epic</button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <input id="checkbox-show-closed" type="checkbox" />&nbsp;<label for="checkbox-show-closed">Show closed</label>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <input id="checkbox-show-2nd-level-children" type="checkbox" />&nbsp;<label for="checkbox-show-2nd-level-children">Show 2<sup><small>nd</small></sup> level children</label>
-        </p>
+        <div class="form-group row">
+            <div class="col-sm-3">
+                <input id="input-epicId" class="form-control" placeholder="Epic ID" />
+            </div>
+            <div class="col-sm-6">
+                <button id="button-visualize" class="btn btn-primary">Visualize epic</button>
+                <input id="checkbox-show-closed" type="checkbox" style="margin-left: 30px" />&nbsp;<label for="checkbox-show-closed">Show closed</label>
+                <input id="checkbox-show-2nd-level-children" type="checkbox" style="margin-left: 30px" />&nbsp;<label for="checkbox-show-2nd-level-children">Show 2<sup><small>nd</small></sup> level children</label>
+            </div>
+        </div>
 
         <p>Visualization requires the following:</p>
 
@@ -41,14 +58,14 @@
         </ol>
 
         <p>
-            <button id="button-logout">Log out</button>
+            <button id="button-logout" class="btn btn-secondary">Log out</button>
         </p>
 
     </div>
 
     <div id="view-login">
 
-        <h1>ADO Epic Visualizer</h1>
+        <h1 class="display-4">ADO Epic Visualizer</h1>
 
         <p>ADO epic visualizer allows to visualize dependencies between child tasks in a given epic. To start, please log in:</p>
 
@@ -69,10 +86,16 @@
             <li>Click the <b>Log in</b> button.</li>
         </ol>
 
-        <p>
-            <input id="input-pat" />
-            <button id="button-login">Log in</button>
-        </p>
+        <div class="form-group row">
+            <div class="col-sm-3">
+                <input id="input-pat" placeholder="PAT" class="form-control" />
+            </div>
+            <div class="col-sm-2">
+                <button id="button-login" class="btn btn-primary">Log in</button>
+            </div>
+        </div>
+
+    </div>
 
     </div>
 
