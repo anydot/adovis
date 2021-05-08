@@ -23,6 +23,10 @@ $(document).ready(async function() {
     if (storage.getItem('showClosed'))
         showClosed = true
 
+    let show2ndLevelChildren = false
+    if (storage.getItem('show2ndLevelChildren'))
+        show2ndLevelChildren = true
+
     console.log("epic ID is [", epicId, "]")
 
     function requestVso(resource, query) {
@@ -100,7 +104,8 @@ $(document).ready(async function() {
 
         var chart = $("#chart")
 
-        chart.empty();
+        chart.hide()
+        chart.empty()
 
         var item = await WorkItem.getById(epicId)
 
@@ -118,28 +123,31 @@ $(document).ready(async function() {
         for (var item of children)
             childrenToFetch = childrenToFetch.concat(item.childIds)
 
-        var children2 = await WorkItem.getManyById(childrenToFetch)
+        if (show2ndLevelChildren) {
 
-        var children2WithExternalDependencies = []
-        for (var child2 of children2) {
-            for (var cessorId of child2.predecessorIds.concat(child2.successorIds)) {
-                var childCessors = children.filter(function(child) {
-                    return child.id == cessorId
-                })
-                if (childCessors.length)
-                    children2WithExternalDependencies.push(child2)
-                var child2Cessors = children2.filter(function(child) {
-                    return child.id == cessorId && child.parentId != child2.parentId
-                })
-                if (child2Cessors.length)
-                    children2WithExternalDependencies.push(child2)
+            var children2 = await WorkItem.getManyById(childrenToFetch)
+
+            var children2WithExternalDependencies = []
+            for (var child2 of children2) {
+                for (var cessorId of child2.predecessorIds.concat(child2.successorIds)) {
+                    var childCessors = children.filter(function(child) {
+                        return child.id == cessorId
+                    })
+                    if (childCessors.length)
+                        children2WithExternalDependencies.push(child2)
+                    var child2Cessors = children2.filter(function(child) {
+                        return child.id == cessorId && child.parentId != child2.parentId
+                    })
+                    if (child2Cessors.length)
+                        children2WithExternalDependencies.push(child2)
+                }
             }
+
+            children = children.concat(children2WithExternalDependencies)
         }
 
-        children = children.concat(children2WithExternalDependencies)
-
         if (!showClosed)
-        children = children.filter(item => item.state != 'Closed')
+            children = children.filter(item => item.state != 'Closed')
 
         console.log('children', children)
 
@@ -169,9 +177,8 @@ $(document).ready(async function() {
 
         renderDependencyGraph(chart, roots, graph)
 
-        if (graph) {
+        if (graph)
             chart.show(epicId)
-        }
     }
 
     function renderDependencyGraph($chart, roots, graph) {
@@ -395,13 +402,15 @@ $(document).ready(async function() {
         $("#input-epicId").val(epicId)
     }
 
-    function updateButtonToggleShowClosedCaption(showClosed) {
-        var button = $('#button-toggle-show-closed')
+    function toggleShowClosed() {
         if (showClosed) {
-            button.text('Hide closed items')
+            showClosed = false;
+            storage.removeItem('showClosed')
         } else {
-            button.text('Show closed items')
+            showClosed = true;
+            storage.setItem('showClosed', 'true')
         }
+        visualize()
     }
 
     function toggleShowClosed() {
@@ -412,14 +421,25 @@ $(document).ready(async function() {
             showClosed = true;
             storage.setItem('showClosed', 'true')
         }
-        updateButtonToggleShowClosedCaption(showClosed)
+        visualize()
+    }
+
+    function toggleShow2ndLevelChildren() {
+        if (show2ndLevelChildren) {
+            show2ndLevelChildren = false;
+            storage.removeItem('show2ndLevelChildren')
+        } else {
+            show2ndLevelChildren = true;
+            storage.setItem('show2ndLevelChildren', 'true')
+        }
         visualize()
     }
 
     $('#button-login').click(login)
     $('#button-visualize').click(visualize)
     $('#button-logout').click(logout)
-    $('#button-toggle-show-closed').click(toggleShowClosed)
+    $('#checkbox-show-closed').click(toggleShowClosed).attr('checked', showClosed)
+    $('#checkbox-show-2nd-level-children').click(toggleShow2ndLevelChildren).attr('checked', show2ndLevelChildren)
 
     $('#input-epicId').keypress(function (e) {
         if (e.which == 13) {
@@ -440,11 +460,7 @@ $(document).ready(async function() {
         return
     }
 
-    updateButtonToggleShowClosedCaption()
-
     $("#view-main").show()
-
-    updateButtonToggleShowClosedCaption(showClosed)
 
     if (epicId) {
         updateInputEpicValue(epicId)
