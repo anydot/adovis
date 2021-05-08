@@ -44,14 +44,18 @@ $(document).ready(async function() {
             return WorkItem.fromVsoResponse(response)
         }
 
-        async getChildren() {
-            if (!this.childIds)
+        static async getManyById(ids) {
+            if (!ids || !ids.length)
                 return []
-            var response = await requestVso('wit/workitems', { 'ids': this.childIds.join(','), '$expand': 'all'})
-            console.log('get children response', response)
+            var response = await requestVso('wit/workitems', { 'ids': ids.join(','), '$expand': 'all'})
+            console.log('get many by ID response', response)
             return response.value.map(function(item) {
                 return WorkItem.fromVsoResponse(item)
             })
+        }
+
+        async getChildren() {
+            return WorkItem.getManyById(this.childIds)
         }
 
         static fromVsoResponse(response) {
@@ -59,6 +63,7 @@ $(document).ready(async function() {
 
             item.id = response.id.toString()
             item.wiType = response.fields['System.WorkItemType']
+            item.wiTypeShort = response.fields['System.WorkItemType'].replace(/ /g, '')
             item.title = response.fields['System.Title'].replace(/\[DOR\]/g, '')
             item.url = response._links.html.href.replace(/skype\.visualstudio\.com/, 'dev.azure.com/skype')
             item.state = response.fields['System.State']
@@ -68,6 +73,7 @@ $(document).ready(async function() {
             item.assignedToShort = WorkItem.getAssignedToShort(item.assignedTo)
             item.column = response.fields['System.BoardColumn']
             item.columnShort = response.fields['System.BoardColumn'].replace(/ /g, '')
+            item.parentId = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Reverse')
             item.childIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Forward')
             item.predecessorIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Dependency-Reverse')
             item.successorIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Dependency-Forward')
@@ -100,11 +106,40 @@ $(document).ready(async function() {
 
         console.log('work item', item)
 
-        chart.append('<h1 class="epic"><a href=' + item.url + ' target="_blank">' + item.wiType + ' ' + item.id + '</a> ' + item.title + '</h1>')
+        chart.append(
+            '<h1 class="feature">' +
+                '<a href=' + item.url + ' target="_blank">' + item.wiType + ' ' + item.id + '</a> ' +
+                item.title +
+            '</h1>')
 
         var children = await item.getChildren()
+
+        var childrenToFetch = []
+        for (var item of children)
+            childrenToFetch = childrenToFetch.concat(item.childIds)
+
+        var children2 = await WorkItem.getManyById(childrenToFetch)
+
+        var children2WithExternalDependencies = []
+        for (var child2 of children2) {
+            for (var cessorId of child2.predecessorIds.concat(child2.successorIds)) {
+                var childCessors = children.filter(function(child) {
+                    return child.id == cessorId
+                })
+                if (childCessors.length)
+                    children2WithExternalDependencies.push(child2)
+                var child2Cessors = children2.filter(function(child) {
+                    return child.id == cessorId && child.parentId != child2.parentId
+                })
+                if (child2Cessors.length)
+                    children2WithExternalDependencies.push(child2)
+            }
+        }
+
+        children = children.concat(children2WithExternalDependencies)
+
         if (!showClosed)
-            children = children.filter(item => item.state != 'Closed')
+        children = children.filter(item => item.state != 'Closed')
 
         console.log('children', children)
 
@@ -141,7 +176,7 @@ $(document).ready(async function() {
 
     function renderDependencyGraph($chart, roots, graph) {
 
-        var calculateOffsets = function(swag, offset, predecesor, ids) {
+        var calculateOffsets = function(swag, offset, predecessor, ids) {
 
             ids.forEach(function(id) {
 
@@ -153,7 +188,7 @@ $(document).ready(async function() {
                 if (offset > graphItem.longestOffset) {
                     graphItem.longestSwag = swag
                     graphItem.longestOffset = offset
-                    graphItem.longestPredecessor = predecesor
+                    graphItem.longestPredecessor = predecessor
                 }
 
                 var successorIds = graphItem.workItem.successorIds
@@ -197,7 +232,7 @@ $(document).ready(async function() {
 
                 var columnTag = (
                     '<span ' +
-                        'class="column' + graphItem.workItem.columnShort + '" ' +
+                        'class="column-' + graphItem.workItem.columnShort + '" ' +
                     '>' +
                         graphItem.workItem.column +
                     '</span> '
@@ -239,9 +274,9 @@ $(document).ready(async function() {
 
                 const thisSwag = graphItem.workItem.swag ? graphItem.workItem.swag : '?'
                 const totalSwag =
-                  (graphItem.longestSwag != null && graphItem.workItem.swag)
-                    ? (graphItem.longestSwag + graphItem.workItem.swag)
-                    : '?'
+                    (graphItem.longestSwag != null && graphItem.workItem.swag)
+                        ? (graphItem.longestSwag + graphItem.workItem.swag)
+                        : '?'
 
                 $chart.append(
                     '<div ' +
@@ -253,13 +288,18 @@ $(document).ready(async function() {
                                 'margin-left: ' + graphItem.longestOffset * barLenght + 'px; ' +
                             '" ' +
                         '>' +
-                            columnTag +
-                            assignedToTag +
-                            predecessorsTag +
-                            successorsTag +
-                            workItemHref +
-                            title +
-                            ' <span class="swag" title="Swag / total swag to completion">' + thisSwag + ' / ' + totalSwag + '</span>' +
+                            '<div class="task-' + graphItem.workItem.wiTypeShort + '">' +
+                                columnTag +
+                                assignedToTag +
+                                predecessorsTag +
+                                successorsTag +
+                                workItemHref +
+                                title + (
+                                    graphItem.workItem.wiType == 'Epic'
+                                        ? ' <span class="swag" title="Swag / total swag to completion">' + thisSwag + ' / ' + totalSwag + '</span>'
+                                        : ''
+                                ) +
+                            '</div>' +
                         '</div>' +
                     '</div>')
 

@@ -11,7 +11,7 @@
     display: none;
 }
 
-.epic {
+.feature {
     font-size: large;
 }
 
@@ -48,37 +48,46 @@
     border-radius: 5px;
 }
 
-.columnPending {
+.task-EnablingSpecification {
+    color:rgb(140, 140, 140);
+}
+
+.column-Pending {
     border-radius: 5px;
     padding: 0 5px 0 5px;
+    color: black;
     background: rgb(255, 200, 200);
     cursor: default;
 }
 
-.columnClarify {
+.column-Clarify {
     border-radius: 5px;
     padding: 0 5px 0 5px;
+    color: black;
     background: rgb(255, 220, 200);
     cursor: default;
 }
 
-.columnReady {
+.column-Ready {
     border-radius: 5px;
     padding: 0 5px 0 5px;
+    color: black;
     background: rgb(240, 240, 140);
     cursor: default;
 }
 
-.columnInProgress {
+.column-InProgress {
     border-radius: 5px;
     padding: 0 5px 0 5px;
+    color: black;
     background: rgb(160, 220, 255);
     cursor: default;
 }
 
-.columnClosed {
+.column-Closed {
     border-radius: 5px;
     padding: 0 5px 0 5px;
+    color: black;
     background: rgb(140, 240, 140);
     cursor: default;
 }
