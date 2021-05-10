@@ -79,7 +79,8 @@ $(document).ready(async function() {
             item.assignedToShort = WorkItem.getAssignedToShort(item.assignedTo)
             item.column = response.fields['System.BoardColumn']
             item.columnShort = response.fields['System.BoardColumn'].replace(/ /g, '')
-            item.parentId = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Reverse')
+            const parentIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Reverse')
+            item.parentId = parentIds.length ? parentIds[0] : null;
             item.childIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Forward')
             item.predecessorIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Dependency-Reverse')
             item.successorIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Dependency-Forward')
