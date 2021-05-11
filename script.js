@@ -61,7 +61,7 @@ $(document).ready(async function() {
         }
 
         async getChildren() {
-            return WorkItem.getManyById(this.childIds)
+            return await WorkItem.getManyById(this.childIds)
         }
 
         static fromVsoResponse(response) {
@@ -122,6 +122,7 @@ $(document).ready(async function() {
             '</h1>')
 
         var children = await item.getChildren()
+        console.log('direct children', children)
 
         var childrenToFetch = []
         for (var item of children)
@@ -130,6 +131,7 @@ $(document).ready(async function() {
         if (show2ndLevelChildren) {
 
             var children2 = await WorkItem.getManyById(childrenToFetch)
+            console.log('children of 2nd level', children)
 
             var children2WithExternalDependencies = []
             for (var child2 of children2) {
@@ -144,6 +146,30 @@ $(document).ready(async function() {
                     })
                     if (child2Cessors.length)
                         children2WithExternalDependencies.push(child2)
+                }
+            }
+
+            var tryExtractMore = true
+            for (var i = 0; i < 10 && tryExtractMore; i++) {
+                tryExtractMore = false
+                var allChildren = children.concat(children2)
+                var extractedChildren = children.concat(children2WithExternalDependencies)
+                console.log('all children', allChildren)
+                console.log('extracted children', extractedChildren)
+                for (var child2 of children2WithExternalDependencies.slice()) {
+                    var notExtractedPredecessorIds = child2.predecessorIds.filter(function(predecessorId) {
+                        return (
+                            allChildren.some(e => e.id == predecessorId) &&
+                            !extractedChildren.some(e => e.id == predecessorId)
+                        )
+                    })
+                    if (!notExtractedPredecessorIds.length)
+                        continue
+                    tryExtractMore = true
+                    children2.forEach(function(child) {
+                        if (notExtractedPredecessorIds.includes(child.id))
+                            children2WithExternalDependencies.push(child)
+                    })
                 }
             }
 
