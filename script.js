@@ -78,7 +78,11 @@ $(document).ready(async function() {
             item.assignedTo = response.fields['System.AssignedTo']
             item.assignedToShort = WorkItem.getAssignedToShort(item.assignedTo)
             item.column = response.fields['System.BoardColumn']
-            item.columnShort = response.fields['System.BoardColumn'].replace(/ /g, '')
+            if (!item.column) {
+                console.log('found work item with unknown column', response)
+                item.column = 'Unknown'
+            }
+            item.columnShort = item.column.replace(/ /g, '')
             const parentIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Reverse')
             item.parentId = parentIds.length ? parentIds[0] : null;
             item.childIds = WorkItem.getRelatedIds(response.relations, 'System.LinkTypes.Hierarchy-Forward')
