@@ -372,7 +372,7 @@ $(document).ready(async function() {
 
                 graphItem.workItem.successorIds.forEach(function(successorId) {
                     var successorGraphItem = graph[successorId]
-                    if (workItemId != successorGraphItem.longestPredecessor.id)
+                    if (successorGraphItem && workItemId != successorGraphItem.longestPredecessor.id)
                         $('#row-workItem' + successorId).addClass('chart-row-successor-highlighted')
                 })
 
@@ -388,7 +388,7 @@ $(document).ready(async function() {
 
                 graphItem.workItem.successorIds.forEach(function(successorId) {
                     var successorGraphItem = graph[successorId]
-                    if (workItemId != successorGraphItem.longestPredecessor.id)
+                    if (successorGraphItem && workItemId != successorGraphItem.longestPredecessor.id)
                         $('#row-workItem' + successorId).removeClass('chart-row-successor-highlighted')
                 })
             }
