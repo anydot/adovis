@@ -238,7 +238,7 @@ $(document).ready(async function () {
             let response = null
             let result = []
             let pageToRequest = 1
-            let maxPages = 4
+            let maxPages = 6
             do {
                 console.log('TglDetailedReportItem.getDetailedReport requesting page ' + pageToRequest)
                 response = await requestTgl('reports/api/v2/details', { 'workspace_id': workspaceId, 'since': since, 'until': until, 'user_agent': 'adovis', 'page': pageToRequest })
